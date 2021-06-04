@@ -4,23 +4,54 @@ import (
 	"context"
 	"fmt"
 	"github.com/gocql/gocql"
+	"story-service/domain"
+	"story-service/dto"
 )
 
 const (
-	CreateHighlightTable = "CREATE TABLE IF NOT EXISTS story_keyspace.Highlights (name, profile_id, posts list<text> PRIMARY KEY (profile_id, name));"
+	CreateHighlightTable = "CREATE TABLE IF NOT EXISTS story_keyspace.Highlights (name, profile_id, posts list<text>, main_story text PRIMARY KEY (profile_id, name));"
 	InsertIntoHighlightTable = "INSERT INTO story_keyspace.Highlights (name, profile_id, posts) VALUES (?, ?, ?);"
-	GetAllHighlightsByUser = "SELECT name, posts from story_keyspace.Highlights WHERE profile_id = ?);"
-	GetStoriesInsideOneHighlight = "SELECT posts FROM story_keyspace.Highlights WHERE profile_id = ? AND name = ?;"
+	GetAllHighlightsByUser = "SELECT name, posts, main_story from story_keyspace.Highlights WHERE profile_id = ?);"
+	GetStoriesInsideOneHighlight = "SELECT posts, main_story FROM story_keyspace.Highlights WHERE profile_id = ? AND name = ?;"
 	UpdatePostsInHighlight = "UPDATE story_keyspace.Highlighte SET posts = ? WHERE profile_id = ? AND name = ?;"
+	GetAllStoryHighlights = "SELECT name, main_story FROM story_keyspace.Stories WHERE profile_id = ?;"
 )
 
 type HighlightRepo interface {
 	AddToHighlight(context context.Context, userId string, storyId string, highlightName string) error
 	RemoveFromHighlight(context context.Context, userId string, storyId string, highlightName string) error
+	GetHighlightByName(context context.Context, userId string, highlightName string) ([]string, string, error)
+	GetAllHighlightsByUser(context context.Context, userId string) ([]dto.HighlightsPreviewDTO, error)
 }
 
 type highlightRepository struct {
 	cassandraSession *gocql.Session
+}
+
+func (h highlightRepository) GetAllHighlightsByUser(context context.Context, userId string) ([]dto.HighlightsPreviewDTO, error) {
+	var name, mainStory string
+	var retVal []dto.HighlightsPreviewDTO
+	iter := h.cassandraSession.Query(GetAllStoryHighlights, userId).Iter().Scanner()
+	
+	for iter.Next() {
+		err := iter.Scan(&name, &mainStory)
+		if err != nil {
+			return nil, err
+		}
+
+		retVal = append(retVal, dto.HighlightsPreviewDTO{UserId: userId, HighlightName: name, MainStory: domain.Media{Path: mainStory}})
+	}
+	return retVal, nil
+}
+
+
+func (h highlightRepository) GetHighlightByName(context context.Context, userId string, highlightName string) ([]string, string, error) {
+	var stories []string
+	var mainStory string
+
+	h.cassandraSession.Query(GetStoriesInsideOneHighlight, userId, highlightName).Iter().Scan(&stories, &mainStory)
+
+	return stories, mainStory, nil
 }
 
 func (h highlightRepository) AddToHighlight(context context.Context, userId string, storyId string, highlightName string) error {

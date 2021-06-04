@@ -9,7 +9,7 @@ type StoryDTO struct {
 	StoryId string `json:"story_id" validate:"required"`
 	UserId string `json:"user_id" validate:"required"`
 	Mentions []string `json:"mentions" validate: "required"`
-	MediaPath string `json:"media_path" validate:"required"`
+	MediaPath domain.Media `json:"media_path" validate:"required"`
 	Type string `json:"type" validate:"required"`
 	Location domain.Location `json:"location" validate:"required"`
 	Timestamp time.Time `json:"timestamp" validate:"required"`
@@ -17,15 +17,16 @@ type StoryDTO struct {
 
 }
 
-func NewStoryDTO(storyId string, userId string, mentions []string, path string, mediaType string, location domain.Location, timestamp time.Time, closeFriends bool) StoryDTO {
+func NewStoryDTO(storyId string, userId string, mentions []string, media domain.Media, mediaType string, location domain.Location, timestamp time.Time, closeFriends bool) StoryDTO {
 	return StoryDTO{
 		StoryId: storyId,
 		CloseFriends: closeFriends,
 		UserId: userId,
 		Mentions: mentions,
-		MediaPath: path,
+		MediaPath: media,
 		Type: mediaType,
 		Location: location,
 		Timestamp: timestamp,
 	}
 }
+
