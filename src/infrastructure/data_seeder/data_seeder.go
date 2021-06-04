@@ -45,7 +45,14 @@ func SeedStories(cassandraSession *gocql.Session, redisClient *redis.Client)  {
 
 
 }
-
+// 	InsertIntoHighlights = "INSERT INTO story_keyspace.Highlights (name, profile_id, posts, main_story) VALUES (?, ?, ?, ?);"
 func SeedHighlights(cassandraSession *gocql.Session, redisClient *redis.Client) {
+	posts := make([]string, 1)
+	posts[0] = "016edec8-04c0-49db-87dd-aaef0d946b88"
 
+	err := cassandraSession.Query(repository.InsertIntoHighlights, "Highlight1", "424935b1-766c-4f99-b306-9263731518bc", posts, "016edec8-04c0-49db-87dd-aaef0d946b88").Exec()
+
+	if err != nil {
+		fmt.Println(err)
+	}
 }

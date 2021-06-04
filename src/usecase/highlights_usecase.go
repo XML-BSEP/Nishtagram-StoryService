@@ -65,6 +65,7 @@ func (h highlightUseCase) GetHighlightByName(ctx context.Context, userId string,
 			}
 			storiesToReturn = append(storiesToReturn, story)
 		}
+
 		return dto.OneHighlightDTO{
 			MainPicture: domain.Media{Path: mainStory},
 			UserId: userId,

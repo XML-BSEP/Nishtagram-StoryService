@@ -14,6 +14,7 @@ const (
 	GetStoriesInsideOneHighlight = "SELECT posts, main_story FROM story_keyspace.Highlights WHERE profile_id = ? AND name = ?;"
 	UpdatePostsInHighlight       = "UPDATE story_keyspace.Highlighte SET posts = ? WHERE profile_id = ? AND name = ?;"
 	GetAllStoryHighlights        = "SELECT name, main_story FROM story_keyspace.Stories WHERE profile_id = ?;"
+	InsertIntoHighlights = "INSERT INTO story_keyspace.Highlights (name, profile_id, posts, main_story) VALUES (?, ?, ?, ?);"
 )
 
 type HighlightRepo interface {
@@ -37,8 +38,9 @@ func (h highlightRepository) GetAllHighlightsByUser(context context.Context, use
 		if err != nil {
 			return nil, err
 		}
-
-		retVal = append(retVal, dto.HighlightsPreviewDTO{UserId: userId, HighlightName: name, MainStory: domain.Media{Path: mainStory}})
+		var mainMedia string
+		h.cassandraSession.Query(GetMediaFromId, userId, mainStory).Iter().Scan(&mainMedia)
+		retVal = append(retVal, dto.HighlightsPreviewDTO{UserId: userId, HighlightName: name, MainStory: domain.Media{Path: mainMedia}})
 	}
 	return retVal, nil
 }
@@ -49,8 +51,9 @@ func (h highlightRepository) GetHighlightByName(context context.Context, userId 
 	var mainStory string
 
 	h.cassandraSession.Query(GetStoriesInsideOneHighlight, userId, highlightName).Iter().Scan(&stories, &mainStory)
-
-	return stories, mainStory, nil
+	var mainMedia string
+	h.cassandraSession.Query(GetMediaFromId, userId, mainStory).Iter().Scan(&mainMedia)
+	return stories, mainMedia, nil
 }
 
 func (h highlightRepository) AddToHighlight(context context.Context, userId string, storyId string, highlightName string) error {
