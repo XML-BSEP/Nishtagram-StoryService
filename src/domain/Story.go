@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"story-service/dto"
 	"time"
 )
 
@@ -31,20 +30,4 @@ func NewStory(id string, media string, timestamp time.Time, userId string, close
 	}
 }
 
-func NewStoryFromDTO(dto dto.StoryDTO) Story {
-	var mentions []Profile
-	for _, s := range dto.Mentions {
-		mentions = append(mentions, Profile{Id: s})
-	}
-	return Story{
-		Id: dto.StoryId,
-		Profile: Profile{Id: dto.UserId},
-		Timestamp: dto.Timestamp,
-		Location: dto.Location,
-		Mentions: mentions,
-		CloseFriends: dto.CloseFriends,
-		Banned: false,
-		StoryType: StoryType{Type: dto.Type},
-		Media: dto.MediaPath,
-	}
-}
+

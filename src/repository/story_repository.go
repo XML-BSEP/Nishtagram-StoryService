@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	CreateStoryTable     = "CREATE TABLE IF NOT EXISTS story_keyspace.Stories (id text, profile_id text, image text, timestamp timestamp, mentions list<text>, close_friends bool, type text, location_name text, longitude double, latitude double, deleted boolean, PRIMARY KEY (profile_id, id));"
+	CreateStoryTable     = "CREATE TABLE IF NOT EXISTS story_keyspace.Stories (id text, profile_id text, image text, timestamp timestamp, mentions list<text>, close_friends boolean, type text, location_name text, longitude double, latitude double, deleted boolean, PRIMARY KEY (profile_id, id));"
 	InsertIntoStoryTable = "INSERT INTO story_keyspace.Stories (id, profile_id, image, timestamp, mentions, close_friends, type, location_name, longitude, latitude, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
 	GetAllStoryByUser    = "SELECT id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude FROM story_keyspace.Stories WHERE profile_id = ? AND id = ? AND deleted = false;"
 	DeleteStory          = "UPDATE story_keyspace.Stories SET deleted = ? WHERE profile_id = ? AND id = ?;"

@@ -38,7 +38,7 @@ func (i interactor) NewAppHandler() handler.AppHandler {
 	appHandler.StoryHandler = i.NewStoryHandler()
 	appHandler.HighlightHandler = i.NewHighlightHandler()
 
-	data_seeder.SeedData()
+	data_seeder.SeedData(i.cassandraClient, i.redisClient)
 	return appHandler
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	CreateHighlightTable = "CREATE TABLE IF NOT EXISTS story_keyspace.Highlights (name, profile_id, posts list<text>, main_story text PRIMARY KEY (profile_id, name));"
+	CreateHighlightTable = "CREATE TABLE IF NOT EXISTS story_keyspace.Highlights (name text, profile_id text, posts list<text>, main_story text, PRIMARY KEY (profile_id, name));"
 	GetAllHighlightsByUser       = "SELECT name, posts, main_story from story_keyspace.Highlights WHERE profile_id = ?);"
 	GetStoriesInsideOneHighlight = "SELECT posts, main_story FROM story_keyspace.Highlights WHERE profile_id = ? AND name = ?;"
 	UpdatePostsInHighlight       = "UPDATE story_keyspace.Highlighte SET posts = ? WHERE profile_id = ? AND name = ?;"

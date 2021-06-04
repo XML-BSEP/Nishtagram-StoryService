@@ -3,8 +3,8 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"story-service/domain"
 	"story-service/dto"
+	"story-service/mapper"
 	"story-service/repository"
 	"time"
 )
@@ -30,7 +30,7 @@ func (s storyUseCase) AddStory(ctx context.Context, dto dto.StoryDTO) error {
 	valueToStore = dto.StoryId
 
 	s.redisUseCase.AddKeyValueSet(context.Background(), keyToStore, valueToStore, now.Sub(expiresAt))
-	return s.storyRepository.AddStory(context.Background(), domain.NewStoryFromDTO(dto))
+	return s.storyRepository.AddStory(context.Background(), mapper.MapDTOToStory(dto))
 }
 
 func (s storyUseCase) RemoveStory(ctx context.Context, dto dto.RemoveStoryDTO) error {
