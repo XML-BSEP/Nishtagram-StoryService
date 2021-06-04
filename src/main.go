@@ -1,15 +1,26 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"log"
+	router2 "story-service/http/router"
+	"story-service/infrastructure/cassandra_config"
+	"story-service/infrastructure/redis_config"
+	"story-service/interactor"
 )
 
 func main() {
+	cassandraSession, err := cassandra_config.NewCassandraSession()
+	if err != nil {
+		log.Println(err)
+	}
 
-	g := gin.Default()
-	g.GET("ping", func(context *gin.Context) {
-		context.JSON(200, "pong")
-	})
-	g.Run("localhost:8084")
+	redisClient := redis_config.NewReddisConn()
+
+	i := interactor.NewInteractor(cassandraSession, redisClient)
+	appHandler := i.NewAppHandler()
+
+	router := router2.NewRouter(appHandler)
+
+	router.Run("localhost:8084")
 }
 
