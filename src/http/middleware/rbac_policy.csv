@@ -1,0 +1,11 @@
+p, USER, /story/addStory, *
+p, USER, /story/removeStory, *
+p, USER, /story/getStories, *
+p, USER, /story/getHighlights, *
+p, USER, /story/getStoriesHighlight, *
+p, USER, /story/addToHighlight, *
+p, USER, /story/removeFromHighlight, *
+
+
+
+

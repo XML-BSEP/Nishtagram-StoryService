@@ -1,0 +1,10 @@
+{
+  "production" : false,
+  "server" : {
+    "address" : "localhost",
+    "port" : 6378
+  },
+  "production_server" : {
+
+  }
+}
