@@ -3,7 +3,7 @@ package domain
 import "time"
 
 type StoryReport struct {
-	Id uint
+	Id string
 	StoryId uint
 	Timestamp time.Time
 	ReportedBy Profile

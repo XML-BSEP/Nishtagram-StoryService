@@ -1,0 +1,8 @@
+{
+  "production" : false,
+  "server" : {
+    "domain": "127.0.0.1",
+    "port": 7001
+  },
+  "proto_version" : 4
+}
