@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"story-service/dto"
+	"story-service/http/middleware"
 	"story-service/usecase"
 )
 
@@ -63,7 +64,7 @@ func (s storyHandler) RemoveStory(ctx *gin.Context) {
 }
 
 func (s storyHandler) GetStoriesForUser(ctx *gin.Context) {
-	var req dto.RemoveStoryDTO
+	/*var req dto.RemoveStoryDTO
 
 	decoder := json.NewDecoder(ctx.Request.Body)
 
@@ -71,9 +72,11 @@ func (s storyHandler) GetStoriesForUser(ctx *gin.Context) {
 		ctx.JSON(400, gin.H{"message" : "invalid request"})
 		ctx.Abort()
 		return
-	}
+	}*/
 
-	stories, err := s.storyUseCase.GetAllStoriesForOneUser(context.Background(), req.UserId)
+	userId, _ := middleware.ExtractUserId(ctx.Request)
+
+	stories, err := s.storyUseCase.GetAllStoriesForOneUser(context.Background(), userId)
 
 	if err != nil {
 		ctx.JSON(500, gin.H{"message" : "server error"})

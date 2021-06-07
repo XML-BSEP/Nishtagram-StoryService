@@ -18,7 +18,7 @@ func SeedStories(cassandraSession *gocql.Session, redisClient *redis.Client)  {
 	timestamp := time.Now()
 	mentions := make([]string, 0)
 
-	err := cassandraSession.Query(repository.InsertIntoStoryTable, "016edec8-04c0-49db-87dd-aaef0d946b88", "424935b1-766c-4f99-b306-9263731518bc", "assets/images/shone.jpg", timestamp, mentions, true, "IMAGE", "NS", 0.0, 0.0, false).Exec()
+	err := cassandraSession.Query(repository.InsertIntoStoryTable, "016edec8-04c0-49db-87dd-aaef0d946b88", "424935b1-766c-4f99-b306-9263731518bc", "shone.jpg", timestamp, mentions, true, "IMAGE", "NS", 0.0, 0.0, false).Exec()
 	key := "424935b1-766c-4f99-b306-9263731518bc" + "/" + "016edec8-04c0-49db-87dd-aaef0d946b88"
 	value := "016edec8-04c0-49db-87dd-aaef0d946b88"
 	expiresAt := time.Now().Add(time.Hour*24)
@@ -30,7 +30,7 @@ func SeedStories(cassandraSession *gocql.Session, redisClient *redis.Client)  {
 	fmt.Println(redisClient.Get(context.Background(), key))
 	timestamp = time.Now()
 
-	err = cassandraSession.Query(repository.InsertIntoStoryTable, "ea803307-52a0-49e6-bf07-7643edfd651f", "a2c2f993-dc32-4a82-82ed-a5f6866f7d03", "assets/images/pablo.jpg", timestamp,
+	err = cassandraSession.Query(repository.InsertIntoStoryTable, "ea803307-52a0-49e6-bf07-7643edfd651f", "a2c2f993-dc32-4a82-82ed-a5f6866f7d03", "pablo.jpg", timestamp,
 		mentions, false, "IMAGE", "NS", 0.0, 0.0, false).Exec()
 	key = "a2c2f993-dc32-4a82-82ed-a5f6866f7d03" + "/" + "ea803307-52a0-49e6-bf07-7643edfd651f"
 	value = "ea803307-52a0-49e6-bf07-7643edfd651f"

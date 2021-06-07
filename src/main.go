@@ -21,6 +21,6 @@ func main() {
 
 	router := router2.NewRouter(appHandler)
 
-	router.Run("localhost:8084")
+	router.RunTLS("localhost:8084", "certificate/cert.pem", "certificate/key.pem")
 }
 
