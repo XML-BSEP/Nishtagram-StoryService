@@ -13,9 +13,12 @@ type StoryDTO struct {
 	Type string `json:"type" validate:"required"`
 	Location domain.Location `json:"location" validate:"required"`
 	Timestamp time.Time `json:"timestamp" validate:"required"`
-	CloseFriends bool `json:"close_friends" validate:"required"`
+	CloseFriends bool `json:"closefriends" validate:"required"`
 	StoryContent StoryContent `json:"storyContent"`
 	User domain.Profile `json:"user" validate:"required"`
+	IsVideo bool `json:"isVideo" validate:"required"`
+	Story string `json:"story"`
+
 
 }
 

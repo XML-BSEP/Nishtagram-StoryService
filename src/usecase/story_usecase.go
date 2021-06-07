@@ -111,15 +111,23 @@ func (s storyUseCase) AddStory(ctx context.Context, dto dto.StoryDTO) error {
 	expiresAt := time.Unix(expiresAtTime.Unix(), 0)
 	now := time.Now()
 
-	decoded, err := s.EncodeBase64(dto.MediaPath.Path, dto.UserId, context.Background())
+	decoded, err := s.EncodeBase64(dto.Story, dto.UserId, context.Background())
 	if err != nil {
 		return err
 	}
 
 	dto.MediaPath.Path = decoded
 
+
 	keyToStore = dto.UserId + "/" + dto.StoryId
 	valueToStore = dto.StoryId
+	dto.Timestamp = now
+	if dto.IsVideo {
+		dto.Type = "VIDEO"
+	} else {
+		dto.Type = "IMAGE"
+	}
+
 
 	s.redisUseCase.AddKeyValueSet(context.Background(), keyToStore, valueToStore, now.Sub(expiresAt))
 	return s.storyRepository.AddStory(context.Background(), mapper.MapDTOToStory(dto))

@@ -29,7 +29,7 @@ func (s storyHandler) AddStory(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
-
+	req.UserId, _ = middleware.ExtractUserId(ctx.Request)
 	err := s.storyUseCase.AddStory(context.Background(), req)
 
 	if err != nil {
