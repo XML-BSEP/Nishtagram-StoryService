@@ -12,12 +12,11 @@ func NewRouter(handler handler.AppHandler) *gin.Engine {
 	g := router.Group("/story")
 
 	g.Use(middleware.AuthMiddleware())
-	g.Use(middleware.CORSMiddleware())
 	g.Use(gin.Logger())
 
 	g.POST("/addStory", handler.AddStory)
 	g.POST("/removeStory", handler.RemoveStory)
-	g.POST("/getStories", handler.GetStoriesForUser)
+	g.GET("/getStories", handler.GetStoriesForUser)
 	g.POST("/getHighlights", handler.GetHighlightsByUser)
 	g.POST("/getStoriesHighlight", handler.GetStoriesInHighlight)
 	g.POST("/addToHighlight", handler.AddStoryToHighlight)

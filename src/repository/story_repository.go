@@ -15,7 +15,7 @@ const (
 	InsertIntoStoryTable = "INSERT INTO story_keyspace.Stories (id, profile_id, image, timestamp, mentions, close_friends, type, location_name, longitude, latitude, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
 	GetAllStoryByUser    = "SELECT id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude FROM story_keyspace.Stories WHERE profile_id = ? AND id = ? AND deleted = false;"
 	DeleteStory          = "UPDATE story_keyspace.Stories SET deleted = ? WHERE profile_id = ? AND id = ?;"
-	GetStoryById         = "SELECT id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude FROM story_keyspace.Stories WHERE profile_id = ? AND id = ? AND deleted = false;"
+	GetStoryById         = "SELECT id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude FROM story_keyspace.Stories WHERE profile_id = ? AND id = ?;"
 	SeeIfExists          = "SELECT count(*) FROM story_keyspace.Stories WHERE profile_id = ? AND id = ?;"
 	GetMediaFromId 		 = "SELECT image FROM story_keyspace.Stories WHERE profile_id = ? AND id = ?;"
 	)

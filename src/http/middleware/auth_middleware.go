@@ -62,8 +62,16 @@ func enforce(role string, obj string, act string) (bool, error) {
 func ExtractToken(r *http.Request) string {
 	bearToken := r.Header.Get("Authorization")
 	strArr := strings.Split(bearToken, " ")
-	if len(strArr) == 2 {
+	if len(strArr) == 2{
 		return strArr[1]
+	} else {
+		if len(strArr) == 1 {
+			if strArr[0] != "" {
+				strArr2 := strings.Split(strArr[0], "\"")
+
+				return strArr2[1]
+			}
+		}
 	}
 	return ""
 }
@@ -91,7 +99,7 @@ func ExtractRole(r *http.Request) (string, error) {
 			return "", err
 		}
 
-		return role, nil
+		return strings.ToUpper(role), nil
 	}
 	return "", err
 }
@@ -106,7 +114,7 @@ func ExtractUserId(r *http.Request) (string, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 
 	if ok  {
-		userId, ok := claims["userId"].(string)
+		userId, ok := claims["user_id"].(string)
 		if !ok {
 			return "", err
 		}
