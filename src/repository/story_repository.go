@@ -18,17 +18,38 @@ const (
 	GetStoryById         = "SELECT id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude FROM story_keyspace.Stories WHERE profile_id = ? AND id = ?;"
 	SeeIfExists          = "SELECT count(*) FROM story_keyspace.Stories WHERE profile_id = ? AND id = ?;"
 	GetMediaFromId 		 = "SELECT image FROM story_keyspace.Stories WHERE profile_id = ? AND id = ?;"
-	)
+	GetStoriesByUserId         = "SELECT id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude FROM story_keyspace.Stories WHERE profile_id = ?;"
+
+)
 
 type StoryRepo interface {
 	AddStory(ctx context.Context, story domain.Story) error
 	RemoveStory(ctx context.Context, userId string, storyId string) error
 	GetStoryById(ctx context.Context, userId string, postId string) (dto.StoryDTO, error)
 	SeeIfExists(ctx context.Context, userId string, storyId string) bool
+	GetAllStoriesById(ctx context.Context, userId string) ([]dto.StoryDTO, error)
 }
 
 type storyRepository struct {
 	cassandraClient *gocql.Session
+}
+
+func (s storyRepository) GetAllStoriesById(ctx context.Context, userId string) ([]dto.StoryDTO, error) {
+	var location domain.Location
+	var id, profileId, image, storyType, locationName string
+	var mentions []string
+	var latitude, longitude float64
+	var timestamp time.Time
+	var closeFriends bool
+	var retVal []dto.StoryDTO
+	iter := s.cassandraClient.Query(GetStoriesByUserId, userId).Iter().Scanner()
+	//id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude
+	for iter.Next() {
+		iter.Scan(&id, &profileId, &image, &timestamp, &closeFriends, &storyType, &mentions, &locationName, &latitude, &longitude)
+		location = domain.NewLocation(locationName, latitude, longitude)
+		retVal = append(retVal, dto.NewStoryDTO(id, profileId, mentions, domain.Media{Path: image, Timestamp: timestamp}, storyType, location, timestamp, closeFriends))
+	}
+	return retVal, nil
 }
 
 func (s storyRepository) SeeIfExists(ctx context.Context, userId string, storyId string) bool {

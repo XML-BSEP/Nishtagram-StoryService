@@ -6,7 +6,7 @@ import (
 )
 
 type StoryDTO struct {
-	StoryId string `json:"story_id" validate:"required"`
+	StoryId string `json:"id" validate:"required"`
 	UserId string `json:"user_id" validate:"required"`
 	Mentions []string `json:"mentions" validate: "required"`
 	MediaPath domain.Media `json:"storycontent" validate:"required"`

@@ -1,9 +1,7 @@
 package dto
 
-import "story-service/domain"
-
 type HighlightsPreviewDTO struct {
-	UserId string `json:"user_id" validate:"required"`
-	MainStory domain.Media `json:"main_story" validate:"requrired"`
-	HighlightName string `json:"highlight_name" validate:"required"`
+	UserId string `json:"id" validate:"required"`
+	HighlightPhoto string `json:"highlightPhoto" validate:"required"`
+	HighlightName string `json:"name" validate:"required"`
 }

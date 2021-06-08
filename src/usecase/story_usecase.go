@@ -23,11 +23,78 @@ type StoryUseCase interface {
 	GetAllStoriesForOneUser(ctx context.Context, userId string) ([]dto.StoryDTO, error)
 	EncodeBase64(media string, userId string, ctx context.Context) (string, error)
 	DecodeBase64(media string, userId string, ctx context.Context) (string, error)
+	GetAllStoriesByUser(userId string, ctx context.Context) ([]dto.StoryDTO, error)
+	GetActiveUsersStories(userId string, ctx context.Context) ([]dto.StoryDTO, error)
+
 }
 
 type storyUseCase struct {
 	storyRepository repository.StoryRepo
 	redisUseCase RedisUseCase
+}
+
+func (s storyUseCase) GetAllStoriesByUser(userId string, ctx context.Context) ([]dto.StoryDTO, error) {
+	stories, _ := s.storyRepository.GetAllStoriesById(context.Background(), userId)
+	var retVal []dto.StoryDTO
+
+	for _, st := range stories {
+
+		encoded, err := s.DecodeBase64(st.MediaPath.Path, st.UserId, context.Background())
+
+		if err != nil {
+			continue
+		}
+		st.MediaPath.Path = encoded
+		if st.Type == "VIDEO" {
+			st.StoryContent = dto.StoryContent{IsVideo: true, Content: st.MediaPath.Path}
+		} else {
+			st.StoryContent = dto.StoryContent{IsVideo: false, Content: st.MediaPath.Path}
+		}
+
+		st.User = domain.Profile{Id: userId, ProfilePhoto: encoded, Username: "aaa"}
+		st.Story = encoded
+		retVal = append(retVal, st)
+	}
+	return retVal, nil
+}
+
+func (s storyUseCase) GetActiveUsersStories(userId string, ctx context.Context) ([]dto.StoryDTO, error) {
+
+	var retVal []dto.StoryDTO
+
+
+	searchPattern := userId + "*"
+	keys, _ := s.redisUseCase.ScanKeyByPattern(context.Background(), searchPattern)
+
+
+	for _, k := range keys {
+		storyId, err := s.redisUseCase.GetValueByKey(context.Background(), k)
+		if err != nil {
+			continue
+		}
+		story, err := s.storyRepository.GetStoryById(context.Background(), userId, storyId)
+		if err != nil {
+			continue
+		}
+		encoded, err := s.DecodeBase64(story.MediaPath.Path, story.UserId, context.Background())
+
+		if err != nil {
+			continue
+		}
+		story.MediaPath.Path = encoded
+		if story.Type == "VIDEO" {
+			story.StoryContent = dto.StoryContent{IsVideo: true, Content: story.MediaPath.Path}
+		} else {
+			story.StoryContent = dto.StoryContent{IsVideo: false, Content: story.MediaPath.Path}
+		}
+
+		story.User = domain.Profile{Id: userId, ProfilePhoto: encoded, Username: "aaa"}
+
+
+		retVal = append(retVal, story)
+	}
+
+	return retVal, nil
 }
 
 func (s storyUseCase) EncodeBase64(media string, userId string, ctx context.Context) (string, error) {
@@ -66,11 +133,10 @@ func (s storyUseCase) EncodeBase64(media string, userId string, ctx context.Cont
 	if _, err := f.Write(dec); err != nil {
 		panic(err)
 	}
-	if err := f.Sync(); err != nil {
-		panic(err)
-	}
 
-	os.Chdir(workingDirectory)
+	err = os.Chdir(workingDirectory)
+
+	workingDirectory, _ = os.Getwd()
 	return userId + "/" + uuid + "." + format[0], nil
 }
 
@@ -97,9 +163,6 @@ func (s storyUseCase) DecodeBase64(media string, userId string, ctx context.Cont
 
 
 	encoded := base64.StdEncoding.EncodeToString(content)
-
-
-	fmt.Println("ENCODED: " + encoded)
 	os.Chdir(workingDirectory)
 
 	return "data:image/jpg;base64," + encoded, nil
