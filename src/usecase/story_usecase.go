@@ -23,7 +23,7 @@ type StoryUseCase interface {
 	GetAllStoriesForOneUser(ctx context.Context, userId string) ([]dto.StoryDTO, error)
 	EncodeBase64(media string, userId string, ctx context.Context) (string, error)
 	DecodeBase64(media string, userId string, ctx context.Context) (string, error)
-	GetAllStoriesByUser(userId string, ctx context.Context) ([]dto.StoryDTO, error)
+	GetAllStoriesByUser(userId string, userRequested string, ctx context.Context) ([]dto.StoryDTO, error)
 	GetActiveUsersStories(userId string, ctx context.Context) ([]dto.StoryDTO, error)
 
 }
@@ -33,7 +33,20 @@ type storyUseCase struct {
 	redisUseCase RedisUseCase
 }
 
-func (s storyUseCase) GetAllStoriesByUser(userId string, ctx context.Context) ([]dto.StoryDTO, error) {
+func (s storyUseCase) GetAllStoriesByUser(userId string, userRequested string, ctx context.Context) ([]dto.StoryDTO, error) {
+	if userId != userRequested {
+		userFollowing, _ := gateway.GetAllUserFollowing(context.Background(), userRequested)
+		isOkay := false
+		for  _, u := range userFollowing {
+			if u.Id == userId {
+				isOkay = true
+				break
+			}
+		}
+		if !isOkay {
+			return nil, fmt.Errorf("oh no i hope i don't fall")
+		}
+	}
 	stories, _ := s.storyRepository.GetAllStoriesById(context.Background(), userId)
 	var retVal []dto.StoryDTO
 
@@ -51,7 +64,8 @@ func (s storyUseCase) GetAllStoriesByUser(userId string, ctx context.Context) ([
 			st.StoryContent = dto.StoryContent{IsVideo: false, Content: st.MediaPath.Path}
 		}
 
-		st.User = domain.Profile{Id: userId, ProfilePhoto: encoded, Username: "aaa"}
+		profile, _ := gateway.GetUser(context.Background(), st.UserId)
+		st.User = domain.Profile{Id: st.UserId, ProfilePhoto: profile.ProfilePhoto, Username: profile.Username}
 		st.Story = encoded
 		retVal = append(retVal, st)
 	}
@@ -78,6 +92,9 @@ func (s storyUseCase) GetActiveUsersStories(userId string, ctx context.Context) 
 		}
 		encoded, err := s.DecodeBase64(story.MediaPath.Path, story.UserId, context.Background())
 
+		profile, _ := gateway.GetUser(context.Background(), story.UserId)
+		story.User = domain.Profile{Id: story.UserId, ProfilePhoto: profile.ProfilePhoto, Username: profile.Username}
+
 		if err != nil {
 			continue
 		}
@@ -100,6 +117,12 @@ func (s storyUseCase) GetActiveUsersStories(userId string, ctx context.Context) 
 func (s storyUseCase) EncodeBase64(media string, userId string, ctx context.Context) (string, error) {
 
 	workingDirectory, _ := os.Getwd()
+	if !strings.HasSuffix(workingDirectory, "src") {
+		firstPart := strings.Split(workingDirectory, "src")
+		value := firstPart[0] + "src"
+		workingDirectory = value
+		os.Chdir(workingDirectory)
+	}
 	path1 := "./assets/images/"
 	err := os.Chdir(path1)
 	if err != nil {
@@ -142,6 +165,12 @@ func (s storyUseCase) EncodeBase64(media string, userId string, ctx context.Cont
 
 func (s storyUseCase) DecodeBase64(media string, userId string, ctx context.Context) (string, error) {
 	workingDirectory, _ := os.Getwd()
+	if !strings.HasSuffix(workingDirectory, "src") {
+		firstPart := strings.Split(workingDirectory, "src")
+		value := firstPart[0] + "src"
+		workingDirectory = value
+		os.Chdir(workingDirectory)
+	}
 
 	path1 := "./assets/images/"
 	err := os.Chdir(path1)
@@ -228,6 +257,8 @@ func (s storyUseCase) GetAllStoriesForOneUser(ctx context.Context, userId string
 			if err != nil {
 				continue
 			}
+			profile, _ := gateway.GetUser(context.Background(), u.Id)
+			story.User = domain.Profile{Id: u.Id, ProfilePhoto: profile.ProfilePhoto, Username: profile.Username}
 			encoded, err := s.DecodeBase64(story.MediaPath.Path, story.UserId, context.Background())
 			if err != nil {
 				continue
@@ -238,7 +269,6 @@ func (s storyUseCase) GetAllStoriesForOneUser(ctx context.Context, userId string
 			} else {
 				story.StoryContent = dto.StoryContent{IsVideo: false, Content: story.MediaPath.Path}
 			}
-			story.User = domain.Profile{Id: u.Id, ProfilePhoto: encoded, Username: "aaa"}
 
 
 			retVal = append(retVal, story)

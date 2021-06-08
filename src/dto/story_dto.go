@@ -18,6 +18,7 @@ type StoryDTO struct {
 	User domain.Profile `json:"user" validate:"required"`
 	IsVideo bool `json:"isVideo" validate:"required"`
 	Story string `json:"story"`
+	NotFollowing bool `json:"notFollowing"`
 
 
 }

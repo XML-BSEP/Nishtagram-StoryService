@@ -1,5 +1,5 @@
 package dto
 
 type UserDTO struct {
-	UserId string `json:"userid" validate:"required"`
+	UserId string `json:"id" validate:"required"`
 }

@@ -30,12 +30,13 @@ type highlightUseCase struct {
 }
 
 func (h highlightUseCase) UpdateHighlights(dto dto.NewHighlight, ctx context.Context) error {
+	userId := dto.UserId
 	if !h.highlightRepository.SeeIfHighlightExists(context.Background(), dto.UserId, dto.HighlightName) {
 		h.highlightRepository.CreateHighlight(dto.UserId, dto.HighlightName, context.Background())
 	}
 	var postsToSave []string
 	if len(dto.Stories) == 0 {
-		h.highlightRepository.DeleteHighlight(dto.Id, dto.HighlightName, context.Background())
+		h.highlightRepository.DeleteHighlight(userId, dto.HighlightName, context.Background())
 		return nil
 	}
 	for _, highlight := range dto.Stories {
@@ -68,6 +69,12 @@ func (h highlightUseCase) AddStoryToHighlight(ctx context.Context, dto dto.Highl
 func (h highlightUseCase) EncodeBase64String(media string, userId string, ctx context.Context) (string, error) {
 
 	workingDirectory, _ := os.Getwd()
+	if !strings.HasSuffix(workingDirectory, "src") {
+		firstPart := strings.Split(workingDirectory, "src")
+		value := firstPart[0] + "src"
+		workingDirectory = value
+		os.Chdir(workingDirectory)
+	}
 	path1 := "./assets/images/"
 	err := os.Chdir(path1)
 	if err != nil {

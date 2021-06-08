@@ -34,7 +34,7 @@ func (s storyHandler) GetStoriesInUserProfile(ctx *gin.Context) {
 	userRequested, _ := middleware.ExtractUserId(ctx.Request)
 	var err error
 	var stories []dto.StoryDTO
-	stories, err = s.storyUseCase.GetAllStoriesByUser(userRequested, context.Background())
+	stories, err = s.storyUseCase.GetAllStoriesByUser(req.UserId, userRequested, context.Background())
 	/*
 	if userRequested == req.UserId {
 		stories, err = s.storyUseCase.GetAllStoriesByUser(req.UserId, context.Background())
