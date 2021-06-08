@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"story-service/dto"
+	"story-service/http/middleware"
 	"story-service/usecase"
 )
 
@@ -13,10 +14,35 @@ type HighlightHandler interface {
 	RemoveStoryFromHighlight(context *gin.Context)
 	GetHighlightsByUser(context *gin.Context)
 	GetStoriesInHighlight(context *gin.Context)
+	SaveHighlight(context *gin.Context)
 }
 
 type highlightHandler struct {
 	highlightUseCase usecase.HighlightUseCase
+}
+
+func (h highlightHandler) SaveHighlight(ctx *gin.Context) {
+	var req dto.NewHighlight
+
+	decoder := json.NewDecoder(ctx.Request.Body)
+
+	if err := decoder.Decode(&req); err != nil {
+		ctx.JSON(400, gin.H{"message" : "invalid request"})
+		ctx.Abort()
+		return
+	}
+
+	req.UserId, _ = middleware.ExtractUserId(ctx.Request)
+
+	err := h.highlightUseCase.UpdateHighlights(req, context.Background())
+
+	if err != nil {
+		ctx.JSON(500, gin.H{"message" : "server error"})
+		ctx.Abort()
+		return
+	}
+
+	ctx.JSON(200, gin.H{"message" : "successfully removed story"})
 }
 
 func (h highlightHandler) AddStoryToHighlight(ctx *gin.Context) {
@@ -29,7 +55,7 @@ func (h highlightHandler) AddStoryToHighlight(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
-
+	req.UserId, _ = middleware.ExtractUserId(ctx.Request)
 	err := h.highlightUseCase.AddStoryToHighlight(context.Background(), req)
 
 	if err != nil {
@@ -76,6 +102,7 @@ func (h highlightHandler) GetHighlightsByUser(ctx *gin.Context) {
 		return
 	}
 
+	req.UserId, _ = middleware.ExtractUserId(ctx.Request)
 	highlights, err := h.highlightUseCase.GetHighlights(context.Background(), req.UserId)
 
 	if err != nil {

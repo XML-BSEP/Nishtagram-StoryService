@@ -5,6 +5,8 @@ p, USER, /story/getHighlights, *
 p, USER, /story/getStoriesHighlight, *
 p, USER, /story/addToHighlight, *
 p, USER, /story/removeFromHighlight, *
+p, USER, /story/getAllStoriesOnUserProfile, *
+p, USER, /story/saveHighlight, *
 
 
 

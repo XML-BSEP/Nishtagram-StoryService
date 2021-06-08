@@ -47,6 +47,15 @@ func AuthMiddleware() gin.HandlerFunc {
 
 
 func enforce(role string, obj string, act string) (bool, error) {
+	m, _ := os.Getwd()
+	fmt.Println(m)
+
+	if !strings.HasSuffix(m, "src")  {
+		splits := strings.Split(m, "src")
+		wd := splits[0] + "src"
+		fmt.Println(wd)
+		os.Chdir(wd)
+	}
 	enforcer, err := casbin.NewEnforcer("http/middleware/rbac_model.conf", "http/middleware/rbac_policy.csv")
 	if err != nil {
 		return false, fmt.Errorf("failed to load policy from DB: %w", err)
