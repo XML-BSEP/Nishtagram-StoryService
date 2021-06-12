@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	logger "github.com/jelena-vlajkov/logger/logger"
+	"github.com/microcosm-cc/bluemonday"
 	"story-service/dto"
 	"story-service/http/middleware"
 	"story-service/usecase"
+	"strings"
 )
 
 type HighlightHandler interface {
@@ -35,6 +37,27 @@ func (h highlightHandler) SaveHighlight(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
+	policy := bluemonday.UGCPolicy()
+	req.Id = strings.TrimSpace(policy.Sanitize(req.Id))
+	req.HighlightName = strings.TrimSpace(policy.Sanitize(req.HighlightName))
+
+	for _,story := range req.Stories {
+		story = strings.TrimSpace(policy.Sanitize(story))
+		if story == "" {
+			h.logger.Logger.Errorf("fields are empty or xss attack happened")
+			ctx.JSON(400, gin.H{"message" : "Fields are empty or xss attack happened"})
+			return
+		}
+	}
+
+
+	if req.Id == "" || req.HighlightName == "" {
+		h.logger.Logger.Errorf("fields are empty or xss attack happened")
+		ctx.JSON(400, gin.H{"message" : "Fields are empty or xss attack happened"})
+		return
+	}
+
+
 
 	req.UserId, _ = middleware.ExtractUserId(ctx.Request, h.logger)
 
@@ -61,6 +84,25 @@ func (h highlightHandler) AddStoryToHighlight(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
+
+	policy := bluemonday.UGCPolicy()
+	req.HighlightName = strings.TrimSpace(policy.Sanitize(req.HighlightName))
+
+	for _,story := range req.StoryId {
+		story = strings.TrimSpace(policy.Sanitize(story))
+		if story == "" {
+			h.logger.Logger.Errorf("fields are empty or xss attack happened")
+			ctx.JSON(400, gin.H{"message" : "Fields are empty or xss attack happened"})
+			return
+		}
+	}
+
+	if req.HighlightName == "" {
+		h.logger.Logger.Errorf("fields are empty or xss attack happened")
+		ctx.JSON(400, gin.H{"message" : "Fields are empty or xss attack happened"})
+		return
+	}
+
 	req.UserId, _ = middleware.ExtractUserId(ctx.Request, h.logger)
 	err := h.highlightUseCase.AddStoryToHighlight(context.Background(), req)
 
@@ -84,6 +126,24 @@ func (h highlightHandler) RemoveStoryFromHighlight(ctx *gin.Context) {
 		h.logger.Logger.Errorf("error while decoding json, error: %v\n", err)
 		ctx.JSON(400, gin.H{"message" : "invalid request"})
 		ctx.Abort()
+		return
+	}
+
+	policy := bluemonday.UGCPolicy()
+	req.HighlightName = strings.TrimSpace(policy.Sanitize(req.HighlightName))
+
+	for _,story := range req.StoryId {
+		story = strings.TrimSpace(policy.Sanitize(story))
+		if story == "" {
+			h.logger.Logger.Errorf("fields are empty or xss attack happened")
+			ctx.JSON(400, gin.H{"message" : "Fields are empty or xss attack happened"})
+			return
+		}
+	}
+
+	if req.HighlightName == "" {
+		h.logger.Logger.Errorf("fields are empty or xss attack happened")
+		ctx.JSON(400, gin.H{"message" : "Fields are empty or xss attack happened"})
 		return
 	}
 
@@ -112,6 +172,8 @@ func (h highlightHandler) GetHighlightsByUser(ctx *gin.Context) {
 		return
 	}
 
+
+
 	req.UserId, _ = middleware.ExtractUserId(ctx.Request, h.logger)
 	highlights, err := h.highlightUseCase.GetHighlights(context.Background(), req.UserId)
 
@@ -134,6 +196,17 @@ func (h highlightHandler) GetStoriesInHighlight(ctx *gin.Context) {
 		h.logger.Logger.Errorf("error while decoding json, error: %v\n", err)
 		ctx.JSON(400, gin.H{"message" : "invalid request"})
 		ctx.Abort()
+		return
+	}
+
+	policy := bluemonday.UGCPolicy()
+	req.UserId = strings.TrimSpace(policy.Sanitize(req.UserId))
+	req.HighlightName = strings.TrimSpace(policy.Sanitize(req.HighlightName))
+
+
+	if req.UserId == "" || req.HighlightName == "" {
+		h.logger.Logger.Errorf("fields are empty or xss attack happened")
+		ctx.JSON(400, gin.H{"message" : "Fields are empty or xss attack happened"})
 		return
 	}
 
