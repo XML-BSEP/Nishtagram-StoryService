@@ -15,14 +15,14 @@ func AuthMiddleware(logger *logger.Logger) gin.HandlerFunc {
 	return func (c *gin.Context) {
 		role, err := ExtractRole(c.Request, logger)
 		if err != nil {
-			logger.Logger.Warnf("unauthorized request from IP address: %v", c.Request.Host)
+			logger.Logger.Warnf("unauthorized request from IP address: %v", c.Request.Referer())
 			c.JSON(401, gin.H{"message" : "Unauthorized"})
 			c.Abort()
 			return
 		}
 
 		if role == "" {
-			logger.Logger.Warnf("unauthorized request from IP address: %v", c.Request.Host)
+			logger.Logger.Warnf("unauthorized request from IP address: %v", c.Request.Referer())
 			c.JSON(401, gin.H{"message" : "Unauthorized"})
 			c.Abort()
 			return
@@ -37,7 +37,7 @@ func AuthMiddleware(logger *logger.Logger) gin.HandlerFunc {
 		}
 
 		if !ok {
-			logger.Logger.Errorf("forbidden request from IP address: %v", c.Request.Host)
+			logger.Logger.Errorf("forbidden request from IP address: %v", c.Request.Referer())
 			c.JSON(403, gin.H{"message" : "forbidden"})
 			c.Abort()
 			return
@@ -53,11 +53,11 @@ func enforce(role string, obj string, act string, logger *logger.Logger) (bool, 
 
 	if !strings.HasSuffix(m, "src")  {
 		splits := strings.Split(m, "src")
-		wd := splits[0] + "src"
+		wd := splits[0] + "/src"
 		fmt.Println(wd)
 		os.Chdir(wd)
 	}
-	enforcer, err := casbin.NewEnforcer("src/http/middleware/rbac_model.conf", "src/http/middleware/rbac_policy.csv")
+	enforcer, err := casbin.NewEnforcer("http/middleware/rbac_model.conf", "http/middleware/rbac_policy.csv")
 	if err != nil {
 		logger.Logger.Errorf("failed to load policy from file: %v", err)
 		return false, fmt.Errorf("failed to load policy from DB: %w", err)

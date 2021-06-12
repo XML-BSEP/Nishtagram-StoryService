@@ -127,6 +127,6 @@ func (s storyHandler) GetStoriesForUser(ctx *gin.Context) {
 	ctx.JSON(200, stories)
 }
 
-func NewStoryHandler(storyUseCase usecase.StoryUseCase) StoryHandler {
-	return &storyHandler{storyUseCase: storyUseCase}
+func NewStoryHandler(storyUseCase usecase.StoryUseCase, logger *logger.Logger) StoryHandler {
+	return &storyHandler{storyUseCase: storyUseCase, logger: logger}
 }

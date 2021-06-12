@@ -172,7 +172,7 @@ func (s storyUseCase) DecodeBase64(media string, userId string, ctx context.Cont
 	workingDirectory, _ := os.Getwd()
 	if !strings.HasSuffix(workingDirectory, "src") {
 		firstPart := strings.Split(workingDirectory, "src")
-		value := firstPart[0] + "src"
+		value := firstPart[0] + "/src"
 		workingDirectory = value
 		os.Chdir(workingDirectory)
 	}
@@ -189,8 +189,7 @@ func (s storyUseCase) DecodeBase64(media string, userId string, ctx context.Cont
 		f, _ = os.Open(spliced[0])
 	}
 
-
-
+	defer f.Close()
 
 	reader := bufio.NewReader(f)
 	content, _ := ioutil.ReadAll(reader)
