@@ -2,6 +2,8 @@ module story-service
 
 go 1.16
 
+replace github.com/jelena-vlajkov/logger/logger => ../../Nishtagram-Logger/
+
 require (
 	github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6 // indirect
 	github.com/casbin/casbin/v2 v2.31.2 // indirect
@@ -15,11 +17,14 @@ require (
 	github.com/gocql/gocql v0.0.0-20210515062232-b7ef815b4556 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.2.0 // indirect
+	github.com/jelena-vlajkov/logger/logger v1.0.0
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
+	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/snowzach/rotatefilehook v0.0.0-20180327172521-2f64f265f58c // indirect
 	github.com/spf13/viper v1.7.1 // indirect
 	github.com/ugorji/go v1.2.6 // indirect
 	github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77 // indirect

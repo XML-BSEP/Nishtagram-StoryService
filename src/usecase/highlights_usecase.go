@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/google/uuid"
+	logger "github.com/jelena-vlajkov/logger/logger"
 	"io/ioutil"
 	"os"
 	"story-service/domain"
@@ -27,9 +28,11 @@ type HighlightUseCase interface {
 type highlightUseCase struct {
 	highlightRepository repository.HighlightRepo
 	storyRepository repository.StoryRepo
+	logger *logger.Logger
 }
 
 func (h highlightUseCase) UpdateHighlights(dto dto.NewHighlight, ctx context.Context) error {
+	h.logger.Logger.Infof("updating highlight %v for user %v\n", dto.HighlightName, dto.UserId)
 	userId := dto.UserId
 	if !h.highlightRepository.SeeIfHighlightExists(context.Background(), dto.UserId, dto.HighlightName) {
 		h.highlightRepository.CreateHighlight(dto.UserId, dto.HighlightName, context.Background())
@@ -50,8 +53,9 @@ func (h highlightUseCase) UpdateHighlights(dto dto.NewHighlight, ctx context.Con
 }
 
 func (h highlightUseCase) AddStoryToHighlight(ctx context.Context, dto dto.HighlightDTO) error {
-
+	h.logger.Logger.Infof("adding story %v to highlight %v for user %v", dto.StoryId, dto.HighlightName, dto.UserId)
 	if !h.highlightRepository.SeeIfHighlightExists(context.Background(), dto.UserId, dto.HighlightName) {
+		h.logger.Logger.Infof("creating highlight %v for user %v", dto.HighlightName, dto.UserId)
 		h.highlightRepository.CreateHighlight(dto.UserId, dto.HighlightName, context.Background())
 	}
 	var postsToSave []string
@@ -67,7 +71,7 @@ func (h highlightUseCase) AddStoryToHighlight(ctx context.Context, dto dto.Highl
 }
 
 func (h highlightUseCase) EncodeBase64String(media string, userId string, ctx context.Context) (string, error) {
-
+	h.logger.Logger.Infof("encoding image for user %v\n", userId)
 	workingDirectory, _ := os.Getwd()
 	if !strings.HasSuffix(workingDirectory, "src") {
 		firstPart := strings.Split(workingDirectory, "src")
@@ -78,6 +82,7 @@ func (h highlightUseCase) EncodeBase64String(media string, userId string, ctx co
 	path1 := "./assets/images/"
 	err := os.Chdir(path1)
 	if err != nil {
+		h.logger.Logger.Errorf("error while encoding image for user %v, error: %v\n", userId, err)
 		fmt.Println(err)
 	}
 	err = os.Mkdir(userId, 0755)
@@ -94,22 +99,22 @@ func (h highlightUseCase) EncodeBase64String(media string, userId string, ctx co
 	dec, err := base64.StdEncoding.DecodeString(st[1])
 
 	if err != nil {
-		panic(err)
+		h.logger.Logger.Errorf("error while encoding image for user %v, error: %v\n", userId, err)
 	}
 	uuid := uuid.NewString()
 	f, err := os.Create(uuid + "." + format[0])
 
 	if err != nil {
-		panic(err)
+		h.logger.Logger.Errorf("error while encoding image for user %v, error: %v\n", userId, err)
 	}
 
 	defer f.Close()
 
 	if _, err := f.Write(dec); err != nil {
-		panic(err)
+		h.logger.Logger.Errorf("error while encoding image for user %v, error: %v\n", userId, err)
 	}
 	if err := f.Sync(); err != nil {
-		panic(err)
+		h.logger.Logger.Errorf("error while encoding image for user %v, error: %v\n", userId, err)
 	}
 
 	os.Chdir(workingDirectory)
@@ -117,7 +122,9 @@ func (h highlightUseCase) EncodeBase64String(media string, userId string, ctx co
 }
 
 func (h highlightUseCase) RemoveStoryFrom(ctx context.Context, dto dto.HighlightDTO) error {
+	h.logger.Logger.Infof("removing story %v from highlight %v for user %v\n", dto.StoryId, dto.HighlightName, dto.UserId)
 	if len(dto.Stories) == 0 {
+		h.logger.Logger.Infof("deleting highlight %v for user %v\n", dto.HighlightName, dto.UserId)
 		h.highlightRepository.DeleteHighlight(dto.UserId, dto.HighlightName, context.Background())
 	}
 	var postsToSave []string
@@ -132,6 +139,7 @@ func (h highlightUseCase) RemoveStoryFrom(ctx context.Context, dto dto.Highlight
 }
 
 func (h highlightUseCase) GetHighlights(ctx context.Context, userId string) ([]dto.HighlightsPreviewDTO, error) {
+	h.logger.Logger.Infof("getting all highlights for user %v\n", userId)
 	highlights, _ := h.highlightRepository.GetAllHighlightsByUser(context.Background(), userId)
 	var retVal []dto.HighlightsPreviewDTO
 	if highlights != nil {
@@ -145,6 +153,7 @@ func (h highlightUseCase) GetHighlights(ctx context.Context, userId string) ([]d
 }
 
 func (h highlightUseCase) GetHighlightByName(ctx context.Context, userId string, highlightName string) (dto.OneHighlightDTO, error) {
+	h.logger.Logger.Infof("getting highlight %v for user %v", highlightName, userId)
 	stories, mainStory, _ := h.highlightRepository.GetHighlightByName(context.Background(), userId, highlightName)
 
 	if len(stories) > 0 {
@@ -179,7 +188,7 @@ func (h highlightUseCase) GetHighlightByName(ctx context.Context, userId string,
 }
 
 func (h highlightUseCase) DecodeBase64Str(media string, userId string, ctx context.Context) (string, error) {
-
+	h.logger.Logger.Infof("decoding image %v for user %v\n", media, userId)
 	workingDirectory, _ := os.Getwd()
 	if !strings.HasSuffix(workingDirectory, "src") {
 		firstPart := strings.Split(workingDirectory, "src")
@@ -215,6 +224,6 @@ func (h highlightUseCase) DecodeBase64Str(media string, userId string, ctx conte
 	return "data:image/jpg;base64," + encoded, nil
 }
 
-func NewHighlightUseCase(highlightRepo repository.HighlightRepo, storyRepository repository.StoryRepo) HighlightUseCase {
-	return &highlightUseCase{highlightRepository: highlightRepo, storyRepository: storyRepository}
+func NewHighlightUseCase(highlightRepo repository.HighlightRepo, storyRepository repository.StoryRepo, logger *logger.Logger) HighlightUseCase {
+	return &highlightUseCase{highlightRepository: highlightRepo, storyRepository: storyRepository, logger: logger}
 }

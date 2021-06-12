@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/google/uuid"
+	logger "github.com/jelena-vlajkov/logger/logger"
 	"io/ioutil"
 	"os"
 	"story-service/domain"
@@ -31,11 +32,13 @@ type StoryUseCase interface {
 type storyUseCase struct {
 	storyRepository repository.StoryRepo
 	redisUseCase RedisUseCase
+	logger *logger.Logger
 }
 
 func (s storyUseCase) GetAllStoriesByUser(userId string, userRequested string, ctx context.Context) ([]dto.StoryDTO, error) {
+	s.logger.Logger.Infof("getting all stories by user %v\n", userId)
 	if userId != userRequested {
-		userFollowing, _ := gateway.GetAllUserFollowing(context.Background(), userRequested)
+		userFollowing, _ := gateway.GetAllUserFollowing(context.Background(), userRequested, s.logger)
 		isOkay := false
 		for  _, u := range userFollowing {
 			if u.Id == userId {
@@ -44,6 +47,7 @@ func (s storyUseCase) GetAllStoriesByUser(userId string, userRequested string, c
 			}
 		}
 		if !isOkay {
+			s.logger.Logger.Errorf("error while getting all stories by user %v, error: no followings\n", userId)
 			return nil, fmt.Errorf("oh no i hope i don't fall")
 		}
 	}
@@ -64,7 +68,7 @@ func (s storyUseCase) GetAllStoriesByUser(userId string, userRequested string, c
 			st.StoryContent = dto.StoryContent{IsVideo: false, Content: st.MediaPath.Path}
 		}
 
-		profile, _ := gateway.GetUser(context.Background(), st.UserId)
+		profile, _ := gateway.GetUser(context.Background(), st.UserId, s.logger)
 		st.User = domain.Profile{Id: st.UserId, ProfilePhoto: profile.ProfilePhoto, Username: profile.Username}
 		st.Story = encoded
 		retVal = append(retVal, st)
@@ -73,7 +77,7 @@ func (s storyUseCase) GetAllStoriesByUser(userId string, userRequested string, c
 }
 
 func (s storyUseCase) GetActiveUsersStories(userId string, ctx context.Context) ([]dto.StoryDTO, error) {
-
+	s.logger.Logger.Infof("getting all active stories for user %v\n", userId)
 	var retVal []dto.StoryDTO
 
 
@@ -92,7 +96,7 @@ func (s storyUseCase) GetActiveUsersStories(userId string, ctx context.Context) 
 		}
 		encoded, err := s.DecodeBase64(story.MediaPath.Path, story.UserId, context.Background())
 
-		profile, _ := gateway.GetUser(context.Background(), story.UserId)
+		profile, _ := gateway.GetUser(context.Background(), story.UserId, s.logger)
 		story.User = domain.Profile{Id: story.UserId, ProfilePhoto: profile.ProfilePhoto, Username: profile.Username}
 
 		if err != nil {
@@ -115,7 +119,7 @@ func (s storyUseCase) GetActiveUsersStories(userId string, ctx context.Context) 
 }
 
 func (s storyUseCase) EncodeBase64(media string, userId string, ctx context.Context) (string, error) {
-
+	s.logger.Logger.Infof("encoding image for user %v\n", userId)
 	workingDirectory, _ := os.Getwd()
 	if !strings.HasSuffix(workingDirectory, "src") {
 		firstPart := strings.Split(workingDirectory, "src")
@@ -126,7 +130,7 @@ func (s storyUseCase) EncodeBase64(media string, userId string, ctx context.Cont
 	path1 := "./assets/images/"
 	err := os.Chdir(path1)
 	if err != nil {
-		fmt.Println(err)
+		s.logger.Logger.Errorf("error while encoding image for user %v, error: %v\n", userId, err)
 	}
 	err = os.Mkdir(userId, 0755)
 	fmt.Println(err)
@@ -142,19 +146,19 @@ func (s storyUseCase) EncodeBase64(media string, userId string, ctx context.Cont
 	dec, err := base64.StdEncoding.DecodeString(st[1])
 
 	if err != nil {
-		panic(err)
+		s.logger.Logger.Errorf("error while encoding image for user %v, error: %v\n", userId, err)
 	}
 	uuid := uuid.NewString()
 	f, err := os.Create(uuid + "." + format[0])
 
 	if err != nil {
-		panic(err)
+		s.logger.Logger.Errorf("error while encoding image for user %v, error: %v\n", userId, err)
 	}
 
 	defer f.Close()
 
 	if _, err := f.Write(dec); err != nil {
-		panic(err)
+		s.logger.Logger.Errorf("error while encoding image for user %v, error: %v\n", userId, err)
 	}
 
 	err = os.Chdir(workingDirectory)
@@ -164,6 +168,7 @@ func (s storyUseCase) EncodeBase64(media string, userId string, ctx context.Cont
 }
 
 func (s storyUseCase) DecodeBase64(media string, userId string, ctx context.Context) (string, error) {
+	s.logger.Logger.Infof("decoding image %v for user %v\n", media, userId)
 	workingDirectory, _ := os.Getwd()
 	if !strings.HasSuffix(workingDirectory, "src") {
 		firstPart := strings.Split(workingDirectory, "src")
@@ -198,6 +203,7 @@ func (s storyUseCase) DecodeBase64(media string, userId string, ctx context.Cont
 }
 
 func (s storyUseCase) AddStory(ctx context.Context, dto dto.StoryDTO) error {
+	s.logger.Logger.Infof("adding story for user %v\n", dto.UserId)
 	var keyToStore, valueToStore string
 	expiresAtTime := time.Now().Add(time.Hour*24)
 	expiresAt := time.Unix(expiresAtTime.Unix(), 0)
@@ -226,7 +232,9 @@ func (s storyUseCase) AddStory(ctx context.Context, dto dto.StoryDTO) error {
 }
 
 func (s storyUseCase) RemoveStory(ctx context.Context, dto dto.RemoveStoryDTO) error {
+	s.logger.Logger.Infof("removing story %v for user %v\n", dto.StoryId, dto.UserId)
 	if !s.storyRepository.SeeIfExists(context.Background(), dto.UserId, dto.StoryId) {
+		s.logger.Logger.Errorf("no such story %v for user %v\n", dto.StoryId, dto.UserId)
 		return fmt.Errorf("no cuch story")
 	}
 
@@ -234,9 +242,8 @@ func (s storyUseCase) RemoveStory(ctx context.Context, dto dto.RemoveStoryDTO) e
 }
 
 func (s storyUseCase) GetAllStoriesForOneUser(ctx context.Context, userId string) ([]dto.StoryDTO, error) {
-	userFollowing, err := gateway.GetAllUserFollowing(context.Background(), userId)
+	userFollowing, err := gateway.GetAllUserFollowing(context.Background(), userId, s.logger)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	var retVal []dto.StoryDTO
@@ -257,7 +264,7 @@ func (s storyUseCase) GetAllStoriesForOneUser(ctx context.Context, userId string
 			if err != nil {
 				continue
 			}
-			profile, _ := gateway.GetUser(context.Background(), u.Id)
+			profile, _ := gateway.GetUser(context.Background(), u.Id, s.logger)
 			story.User = domain.Profile{Id: u.Id, ProfilePhoto: profile.ProfilePhoto, Username: profile.Username}
 			encoded, err := s.DecodeBase64(story.MediaPath.Path, story.UserId, context.Background())
 			if err != nil {
@@ -280,9 +287,10 @@ func (s storyUseCase) GetAllStoriesForOneUser(ctx context.Context, userId string
 
 }
 
-func NewStoryUseCase(storyRepository repository.StoryRepo, useCase RedisUseCase) StoryUseCase {
+func NewStoryUseCase(storyRepository repository.StoryRepo, useCase RedisUseCase, logger *logger.Logger) StoryUseCase {
 	return &storyUseCase{
 		storyRepository: storyRepository,
 		redisUseCase: useCase,
+		logger: logger,
 	}
 }

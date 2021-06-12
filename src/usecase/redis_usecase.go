@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	logger "github.com/jelena-vlajkov/logger/logger"
 	"time"
 )
 
@@ -17,9 +18,11 @@ type RedisUseCase interface {
 
 type redisUseCase struct {
 	RedisClient *redis.Client
+	logger *logger.Logger
 }
 
 func (r *redisUseCase) ScanKeyByPattern(ctx context.Context, pattern string) ([]string, error) {
+	r.logger.Logger.Infof("scanning redis for stories to show by pattern %v\n", pattern)
 	var _, cursor uint64
 	var n int
 	var keysLength []string
@@ -43,12 +46,12 @@ func (r *redisUseCase) ScanKeyByPattern(ctx context.Context, pattern string) ([]
 			break
 		}
 	}
-
+	r.logger.Logger.Warnf("no stories to show by pattern %v\n", pattern)
 	return nil, fmt.Errorf("server error")
 }
 
-func NewRedisUsecase(r *redis.Client) RedisUseCase {
-	return &redisUseCase{RedisClient: r}
+func NewRedisUsecase(r *redis.Client, logger *logger.Logger) RedisUseCase {
+	return &redisUseCase{RedisClient: r, logger: logger}
 }
 
 func (r *redisUseCase) GetValueByKey(context context.Context, key string) (string, error) {
@@ -56,11 +59,19 @@ func (r *redisUseCase) GetValueByKey(context context.Context, key string) (strin
 }
 
 func (r *redisUseCase) AddKeyValueSet(context context.Context, key string, value interface{}, expiration time.Duration) error {
-	return r.RedisClient.Set(context, key, value, expiration).Err()
+	err := r.RedisClient.Set(context, key, value, expiration).Err()
+	if err != nil {
+		r.logger.Logger.Errorf("error while adding key %v and value %v in redis, error: %v\n", key, value, err)
+	}
+	return err
 }
 
 func (r *redisUseCase) DeleteValueByKey(context context.Context, key string) error {
-	return r.RedisClient.Del(context, key).Err()
+	err := r.RedisClient.Del(context, key).Err()
+	if err != nil {
+		r.logger.Logger.Errorf("error while deleting key %v in redis, error: %v\n", key, err)
+	}
+	return err
 }
 
 
