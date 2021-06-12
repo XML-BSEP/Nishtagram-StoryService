@@ -80,7 +80,9 @@ func ExtractToken(r *http.Request) string {
 		if len(strArr) == 1 {
 			if strArr[0] != "" {
 				strArr2 := strings.Split(strArr[0], "\"")
-
+				if len(strArr2) == 1 {
+					return strArr2[0]
+				}
 				return strArr2[1]
 			}
 		}
