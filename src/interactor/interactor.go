@@ -65,7 +65,7 @@ func (i interactor) NewHighlightUseCase() usecase.HighlightUseCase {
 }
 
 func (i interactor) NewStoryHandler() handler.StoryHandler {
-	return handler.NewStoryHandler(i.NewStoryUseCase())
+	return handler.NewStoryHandler(i.NewStoryUseCase(), i.logger)
 }
 
 func (i interactor) NewHighlightHandler() handler.HighlightHandler {
