@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gocql/gocql"
 	"github.com/google/uuid"
+	logger "github.com/jelena-vlajkov/logger/logger"
 	"story-service/domain"
 	"story-service/dto"
 	"time"
@@ -32,6 +33,7 @@ type StoryRepo interface {
 
 type storyRepository struct {
 	cassandraClient *gocql.Session
+	logger *logger.Logger
 }
 
 func (s storyRepository) GetAllStoriesById(ctx context.Context, userId string) ([]dto.StoryDTO, error) {
@@ -84,7 +86,7 @@ func (s storyRepository) AddStory(ctx context.Context, story domain.Story) error
 	err := s.cassandraClient.Query(InsertIntoStoryTable, uuid.NewString(), story.Profile.Id, story.Media.Path, story.Timestamp, mentions, story.CloseFriends,
 		story.StoryType.Type, story.Location.Location, story.Location.Longitude, story.Location.Latitude, false).Exec()
 	if err != nil {
-
+		s.logger.Logger.Errorf("error while adding story for user %v, error: %v\n", story.Profile.Id, err)
 		return fmt.Errorf("server error")
 	}
 	return nil
@@ -93,16 +95,18 @@ func (s storyRepository) AddStory(ctx context.Context, story domain.Story) error
 func (s storyRepository) RemoveStory(ctx context.Context, userId string, storyId string) error {
 	err := s.cassandraClient.Query(DeleteStory, true, userId, storyId).Exec()
 	if err != nil {
+		s.logger.Logger.Errorf("error while removing")
 		fmt.Println(err)
 		return err
 	}
 	return nil
 }
 
-func NewStoryRepo(cassandraClient *gocql.Session) StoryRepo {
+func NewStoryRepo(cassandraClient *gocql.Session, logger *logger.Logger) StoryRepo {
 	err := cassandraClient.Query(CreateStoryTable).Exec()
 	if err != nil {
+
 		fmt.Println(err)
 	}
-	return &storyRepository{cassandraClient: cassandraClient}
+	return &storyRepository{cassandraClient: cassandraClient, logger: logger}
 }

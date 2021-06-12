@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	logger "github.com/jelena-vlajkov/logger/logger"
 	"story-service/dto"
 	"story-service/http/middleware"
 	"story-service/usecase"
@@ -18,20 +19,23 @@ type StoryHandler interface {
 
 type storyHandler struct {
 	storyUseCase usecase.StoryUseCase
+	logger *logger.Logger
 }
 
 func (s storyHandler) GetStoriesInUserProfile(ctx *gin.Context) {
+	s.logger.Logger.Println("Handling GETTING STORIES ON PROFILE")
 	var req dto.UserDTO
 
 	decoder := json.NewDecoder(ctx.Request.Body)
 
 	if err := decoder.Decode(&req); err != nil {
+		s.logger.Logger.Errorf("error while decoding json, error: %v\n", err)
 		ctx.JSON(400, gin.H{"message" : "invalid request"})
 		ctx.Abort()
 		return
 	}
 
-	userRequested, _ := middleware.ExtractUserId(ctx.Request)
+	userRequested, _ := middleware.ExtractUserId(ctx.Request, s.logger)
 	var err error
 	var stories []dto.StoryDTO
 	stories, err = s.storyUseCase.GetAllStoriesByUser(req.UserId, userRequested, context.Background())
@@ -52,16 +56,18 @@ func (s storyHandler) GetStoriesInUserProfile(ctx *gin.Context) {
 }
 
 func (s storyHandler) AddStory(ctx *gin.Context) {
+	s.logger.Logger.Println("Handling ADDING STORIES")
 	var req dto.StoryDTO
 
 	decoder := json.NewDecoder(ctx.Request.Body)
 
 	if err := decoder.Decode(&req); err != nil {
+		s.logger.Logger.Errorf("error while decoding json, error: %v\n", err)
 		ctx.JSON(400, gin.H{"message" : "invalid request"})
 		ctx.Abort()
 		return
 	}
-	req.UserId, _ = middleware.ExtractUserId(ctx.Request)
+	req.UserId, _ = middleware.ExtractUserId(ctx.Request, s.logger)
 	err := s.storyUseCase.AddStory(context.Background(), req)
 
 	if err != nil {
@@ -74,11 +80,13 @@ func (s storyHandler) AddStory(ctx *gin.Context) {
 }
 
 func (s storyHandler) RemoveStory(ctx *gin.Context) {
+	s.logger.Logger.Println("Handling REMOVING STORY")
 	var req dto.RemoveStoryDTO
 
 	decoder := json.NewDecoder(ctx.Request.Body)
 
 	if err := decoder.Decode(&req); err != nil {
+		s.logger.Logger.Errorf("error while decoding json, error: %v\n", err)
 		ctx.JSON(400, gin.H{"message" : "invalid request"})
 		ctx.Abort()
 		return
@@ -105,8 +113,8 @@ func (s storyHandler) GetStoriesForUser(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}*/
-
-	userId, _ := middleware.ExtractUserId(ctx.Request)
+	s.logger.Logger.Println("Handling GETTING STORIES ON FEED")
+	userId, _ := middleware.ExtractUserId(ctx.Request, s.logger)
 
 	stories, err := s.storyUseCase.GetAllStoriesForOneUser(context.Background(), userId)
 

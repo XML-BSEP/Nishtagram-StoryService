@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gocql/gocql"
+	logger "github.com/jelena-vlajkov/logger/logger"
 	"story-service/dto"
 )
 
@@ -33,10 +34,14 @@ type HighlightRepo interface {
 
 type highlightRepository struct {
 	cassandraSession *gocql.Session
+	logger *logger.Logger
 }
 
 func (h highlightRepository) DeleteHighlight(userId string, highlightName string, ctx context.Context) error {
 	err := h.cassandraSession.Query(DeleteHighlight, userId, highlightName).Exec()
+	if err != nil {
+		h.logger.Logger.Errorf("error while deleting highlight %v for user %userId, error: %v\n", highlightName, userId, err)
+	}
 	return err
 }
 
@@ -47,7 +52,9 @@ func (h highlightRepository) UpdatePostsInHighlight(userId string, highlightName
 	}
 
 	err := h.cassandraSession.Query(UpdatePostsInHighlight, posts, posts[0], userId, highlightName).Exec()
-	fmt.Println(err)
+	if err != nil {
+		h.logger.Logger.Errorf("error while updationg post in highlight %v for user %v, error: %v\n", highlightName, userId, err)
+	}
 	return nil
 }
 
@@ -56,6 +63,7 @@ func (h highlightRepository) CreateHighlight(userId string, highlightName string
 	var mainStory string
 	err := h.cassandraSession.Query(InsertIntoHighlights, highlightName, userId, posts, mainStory).Exec()
 	if err != nil {
+		h.logger.Logger.Errorf("error while creating highlight %v for user %v, error: %v\n", highlightName, userId, err)
 		return err
 	}
 	return nil
@@ -108,6 +116,7 @@ func (h highlightRepository) AddToHighlight(context context.Context, userId stri
 	stories = append(stories, storyId)
 	err := h.cassandraSession.Query(UpdatePostsInHighlight, stories, userId, highlightName).Exec()
 	if err != nil {
+		h.logger.Logger.Errorf("error while adding to highlight %v for user %v, error: %v\n", highlightName, userId, err)
 		return nil
 	}
 	return nil
@@ -123,6 +132,7 @@ func (h highlightRepository) RemoveFromHighlight(context context.Context, userId
 	}
 	err := h.cassandraSession.Query(UpdatePostsInHighlight, stories, userId, highlightName).Exec()
 	if err != nil {
+		h.logger.Logger.Errorf("error while removing post from highlight %v for user %v, error: %v\n", highlightName, userId, err)
 		return nil
 	}
 	return nil
@@ -143,10 +153,10 @@ func remove(slice []string, index int) []string {
 	return new
 }
 
-func NewHighlightRepo(cassandraSession *gocql.Session) HighlightRepo {
+func NewHighlightRepo(cassandraSession *gocql.Session, logger *logger.Logger) HighlightRepo {
 	err := cassandraSession.Query(CreateHighlightTable).Exec()
 	if err != nil {
 		fmt.Println(err)
 	}
-	return &highlightRepository{cassandraSession: cassandraSession}
+	return &highlightRepository{cassandraSession: cassandraSession, logger: logger}
 }

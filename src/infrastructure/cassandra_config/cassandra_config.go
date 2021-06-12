@@ -3,6 +3,7 @@ package cassandra_config
 import (
 	"fmt"
 	"github.com/gocql/gocql"
+	logger "github.com/jelena-vlajkov/logger/logger"
 	"github.com/spf13/viper"
 	"log"
 	"strconv"
@@ -10,7 +11,7 @@ import (
 )
 
 func init_viper() {
-	viper.SetConfigFile(`config/cassandra_config.json`)
+	viper.SetConfigFile(`src/config/cassandra_config.json`)
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Println(err)
@@ -22,7 +23,7 @@ const (
 	CreateKeyspace ="CREATE KEYSPACE if not exists story_keyspace WITH replication = { 'class': 'SimpleStrategy', 'replication_factor': '1' };"
 )
 
-func NewCassandraSession() (*gocql.Session, error) {
+func NewCassandraSession(logger *logger.Logger) (*gocql.Session, error) {
 	init_viper()
 	domain := viper.GetString(`server.domain`) + ":" + viper.GetString(`server.port`)
 	fmt.Println(domain)
@@ -36,14 +37,14 @@ func NewCassandraSession() (*gocql.Session, error) {
 
 	session, err := cluster.CreateSession()
 	if err != nil {
-		log.Println(err)
+		logger.Logger.Fatalf("failed to connect to Cassandra Story DB, error: %v\n", err)
 		return nil, err
 	}
 
 	err = session.Query(CreateKeyspace).Exec()
 
 	if err != nil {
-		log.Println(err)
+		logger.Logger.Fatalf("cannot create keyspace in Cassandra Story DB, error: %v\n", err)
 		return nil, err
 	}
 	return session, err

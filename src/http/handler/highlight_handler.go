@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	logger "github.com/jelena-vlajkov/logger/logger"
 	"story-service/dto"
 	"story-service/http/middleware"
 	"story-service/usecase"
@@ -19,20 +20,23 @@ type HighlightHandler interface {
 
 type highlightHandler struct {
 	highlightUseCase usecase.HighlightUseCase
+	logger *logger.Logger
 }
 
 func (h highlightHandler) SaveHighlight(ctx *gin.Context) {
+	h.logger.Logger.Println("Handling SAVING HIGHLIGHT")
 	var req dto.NewHighlight
 
 	decoder := json.NewDecoder(ctx.Request.Body)
 
 	if err := decoder.Decode(&req); err != nil {
+		h.logger.Logger.Errorf("error while decoding json, error: %v\n", err)
 		ctx.JSON(400, gin.H{"message" : "invalid request"})
 		ctx.Abort()
 		return
 	}
 
-	req.UserId, _ = middleware.ExtractUserId(ctx.Request)
+	req.UserId, _ = middleware.ExtractUserId(ctx.Request, h.logger)
 
 	err := h.highlightUseCase.UpdateHighlights(req, context.Background())
 
@@ -46,16 +50,18 @@ func (h highlightHandler) SaveHighlight(ctx *gin.Context) {
 }
 
 func (h highlightHandler) AddStoryToHighlight(ctx *gin.Context) {
+	h.logger.Logger.Println("Handling ADDING STORY TO HIGHLIGHT")
 	var req dto.HighlightDTO
 
 	decoder := json.NewDecoder(ctx.Request.Body)
 
 	if err := decoder.Decode(&req); err != nil {
+		h.logger.Logger.Errorf("error while decoding json, error: %v\n", err)
 		ctx.JSON(400, gin.H{"message" : "invalid request"})
 		ctx.Abort()
 		return
 	}
-	req.UserId, _ = middleware.ExtractUserId(ctx.Request)
+	req.UserId, _ = middleware.ExtractUserId(ctx.Request, h.logger)
 	err := h.highlightUseCase.AddStoryToHighlight(context.Background(), req)
 
 	if err != nil {
@@ -69,11 +75,13 @@ func (h highlightHandler) AddStoryToHighlight(ctx *gin.Context) {
 }
 
 func (h highlightHandler) RemoveStoryFromHighlight(ctx *gin.Context) {
+	h.logger.Logger.Println("Handling REMOVING STORY FROM HIGHLIGHT")
 	var req dto.HighlightDTO
 
 	decoder := json.NewDecoder(ctx.Request.Body)
 
 	if err := decoder.Decode(&req); err != nil {
+		h.logger.Logger.Errorf("error while decoding json, error: %v\n", err)
 		ctx.JSON(400, gin.H{"message" : "invalid request"})
 		ctx.Abort()
 		return
@@ -92,17 +100,19 @@ func (h highlightHandler) RemoveStoryFromHighlight(ctx *gin.Context) {
 }
 
 func (h highlightHandler) GetHighlightsByUser(ctx *gin.Context) {
+	h.logger.Logger.Println("Handling GETTING HIGHLIGHTS BY USER")
 	var req dto.HighlightDTO
 
 	decoder := json.NewDecoder(ctx.Request.Body)
 
 	if err := decoder.Decode(&req); err != nil {
+		h.logger.Logger.Errorf("error while decoding json, error: %v\n", err)
 		ctx.JSON(400, gin.H{"message" : "invalid request"})
 		ctx.Abort()
 		return
 	}
 
-	req.UserId, _ = middleware.ExtractUserId(ctx.Request)
+	req.UserId, _ = middleware.ExtractUserId(ctx.Request, h.logger)
 	highlights, err := h.highlightUseCase.GetHighlights(context.Background(), req.UserId)
 
 	if err != nil {
@@ -115,11 +125,13 @@ func (h highlightHandler) GetHighlightsByUser(ctx *gin.Context) {
 }
 
 func (h highlightHandler) GetStoriesInHighlight(ctx *gin.Context) {
+	h.logger.Logger.Println("Handling GETTING STORIES IN HIGHLIGHTS")
 	var req dto.HighlightDTO
 
 	decoder := json.NewDecoder(ctx.Request.Body)
 
 	if err := decoder.Decode(&req); err != nil {
+		h.logger.Logger.Errorf("error while decoding json, error: %v\n", err)
 		ctx.JSON(400, gin.H{"message" : "invalid request"})
 		ctx.Abort()
 		return
@@ -136,6 +148,6 @@ func (h highlightHandler) GetStoriesInHighlight(ctx *gin.Context) {
 	ctx.JSON(200, highlights)
 }
 
-func NewHighlightHandler(highlightUseCase usecase.HighlightUseCase) HighlightHandler {
-	return &highlightHandler{highlightUseCase: highlightUseCase}
+func NewHighlightHandler(highlightUseCase usecase.HighlightUseCase, logger *logger.Logger) HighlightHandler {
+	return &highlightHandler{highlightUseCase: highlightUseCase, logger: logger}
 }
