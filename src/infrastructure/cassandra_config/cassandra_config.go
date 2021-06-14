@@ -11,7 +11,7 @@ import (
 )
 
 func init_viper() {
-	viper.SetConfigFile(`src/config/cassandra_config.json`)
+	viper.SetConfigFile(`config/cassandra_config.json`)
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Println(err)
