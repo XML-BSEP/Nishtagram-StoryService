@@ -25,7 +25,7 @@ func main() {
 	router := router2.NewRouter(appHandler, logger)
 
 	logger.Logger.Infof("server listening on port %v\n", "8084")
-	router.RunTLS("localhost:8084", "src/certificate/cert.pem", "src/certificate/key.pem")
+	router.RunTLS(":8084", "certificate/cert.pem", "certificate/key.pem")
 
 }
 
