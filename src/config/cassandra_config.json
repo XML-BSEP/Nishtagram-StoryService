@@ -1,8 +1,10 @@
 {
   "production" : false,
+  "docker" : true,
   "server" : {
     "domain": "127.0.0.1",
-    "port": 7001
+    "docker_domain" : "cassandrastory",
+    "port": 9042
   },
   "proto_version" : 4
 }
