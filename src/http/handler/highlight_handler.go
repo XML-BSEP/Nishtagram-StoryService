@@ -51,7 +51,7 @@ func (h highlightHandler) SaveHighlight(ctx *gin.Context) {
 	}
 
 
-	if req.Id == "" || req.HighlightName == "" {
+	if req.HighlightName == "" {
 		h.logger.Logger.Errorf("fields are empty or xss attack happened")
 		ctx.JSON(400, gin.H{"message" : "Fields are empty or xss attack happened"})
 		return
