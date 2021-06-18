@@ -7,6 +7,8 @@ p, USER, /story/addToHighlight, *
 p, USER, /story/removeFromHighlight, *
 p, USER, /story/getAllStoriesOnUserProfile, *
 p, USER, /story/saveHighlight, *
+p, USER, /story/reportStory, *
+p, USER, /story/getAllReportTypes, *
 
 
 

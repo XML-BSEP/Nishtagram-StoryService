@@ -33,7 +33,7 @@ func NewCassandraSession(logger *logger.Logger) (*gocql.Session, error) {
 	}
 	domain = domain + ":" + viper.GetString(`server.port`)
 	fmt.Println(domain)
-	cluster := gocql.NewCluster(domain + ":" + viper.GetString(`server.port`))
+	cluster := gocql.NewCluster(domain)
 	cluster.ProtoVersion, _ = strconv.Atoi(viper.GetString(`proto_version`))
 	cluster.Consistency = gocql.LocalQuorum
 	cluster.Timeout = time.Second * 1000

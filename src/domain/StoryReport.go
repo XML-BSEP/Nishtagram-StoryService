@@ -4,9 +4,10 @@ import "time"
 
 type StoryReport struct {
 	Id string
-	StoryId uint
+	StoryId string
 	Timestamp time.Time
 	ReportedBy Profile
 	ReportType ReportType
 	ReportStatus ReportStatus
+	ReportedStoryBy Profile
 }
