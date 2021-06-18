@@ -24,6 +24,8 @@ func NewRouter(handler handler.AppHandler, logger *logger.Logger) *gin.Engine {
 	g.POST("/removeFromHighlight", handler.RemoveStoryFromHighlight)
 	g.POST("/getAllStoriesOnUserProfile", handler.GetStoriesInUserProfile)
 	g.POST("/saveHighlight", handler.SaveHighlight)
+	g.POST("/reportStory", handler.ReportStory)
+	g.GET("/getAllReportTypes", handler.GetAllReportTypes)
 
 	return router
 }

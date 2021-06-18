@@ -16,7 +16,15 @@ func init_viper(logger *logger.Logger) {
 }
 func NewReddisConn(logger *logger.Logger) *redis.Client {
 	init_viper(logger)
-	address := viper.GetString(`server.address`)
+	var domain string
+	if viper.GetBool(`docker`) {
+		domain = viper.GetString(`server.docker_address`)
+	} else {
+		domain = viper.GetString(`server.address`)
+	}
+
+
+	address := domain
 	port := viper.GetString(`server.port`)
 
 	return redis.NewClient(&redis.Options{

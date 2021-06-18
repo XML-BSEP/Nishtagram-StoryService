@@ -13,20 +13,24 @@ import (
 type appHandler struct {
 	handler.HighlightHandler
 	handler.StoryHandler
+	handler.ReportHandler
 }
 
 
 type Interactor interface {
 	NewStoryRepository() repository.StoryRepo
 	NewHighlightRepository() repository.HighlightRepo
+	NewReportRepository() repository.ReportRepository
 
 	NewStoryUseCase() usecase.StoryUseCase
 	NewHighlightUseCase() usecase.HighlightUseCase
 	NewRedisUseCase() usecase.RedisUseCase
+	NewReportUseCase() usecase.ReportUseCase
 
 	NewAppHandler() handler.AppHandler
 	NewStoryHandler() handler.StoryHandler
 	NewHighlightHandler() handler.HighlightHandler
+	NewReportHandler() handler.ReportHandler
 }
 
 type interactor struct {
@@ -35,10 +39,23 @@ type interactor struct {
 	logger *logger.Logger
 }
 
+func (i interactor) NewReportRepository() repository.ReportRepository {
+	return repository.NewReportRepository(i.cassandraClient)
+}
+
+func (i interactor) NewReportUseCase() usecase.ReportUseCase {
+	return usecase.NewReportUseCase(i.NewReportRepository(), i.NewStoryRepository())
+}
+
+func (i interactor) NewReportHandler() handler.ReportHandler {
+	return handler.NewReportHandler(i.NewReportUseCase(), i.logger)
+}
+
 func (i interactor) NewAppHandler() handler.AppHandler {
 	appHandler := appHandler{}
 	appHandler.StoryHandler = i.NewStoryHandler()
 	appHandler.HighlightHandler = i.NewHighlightHandler()
+	appHandler.ReportHandler = i.NewReportHandler()
 
 	data_seeder.SeedData(i.cassandraClient, i.redisClient)
 	return appHandler
