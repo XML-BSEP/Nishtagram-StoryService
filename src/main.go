@@ -29,7 +29,7 @@ func main() {
 	
 	if os.Getenv("DOCKER_ENV") == "" {
 
-		err := router.RunTLS("localhost:8084", "src/certificate/cert.pem", "src/certificate/key.pem")
+		err := router.RunTLS(":8084", "certificate/cert.pem", "certificate/key.pem")
 		if err != nil {
 			return 
 		}

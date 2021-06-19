@@ -675,3 +675,4 @@
 {"data":{},"file":"redis_usecase.go:49","func":"story-service/usecase.(*redisUseCase).ScanKeyByPattern","level":"warning","msg":"no stories to show by pattern ead67925-e71c-43f4-8739-c3b823fe21bb*\n","time":"2021-06-13 09:47:57"}
 {"data":{},"file":"redis_usecase.go:25","func":"story-service/usecase.(*redisUseCase).ScanKeyByPattern","level":"info","msg":"scanning redis for stories to show by pattern 23ddb1dd-4303-428b-b506-ff313071d5d7*\n","time":"2021-06-13 09:47:57"}
 {"data":{},"file":"redis_usecase.go:49","func":"story-service/usecase.(*redisUseCase).ScanKeyByPattern","level":"warning","msg":"no stories to show by pattern 23ddb1dd-4303-428b-b506-ff313071d5d7*\n","time":"2021-06-13 09:47:57"}
+{"data":{},"file":"main.go:28","func":"main.main","level":"info","msg":"server listening on port 8084\n","time":"2021-06-19 17:54:34"}

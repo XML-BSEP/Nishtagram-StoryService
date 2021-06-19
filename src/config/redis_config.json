@@ -4,9 +4,9 @@
   "server" : {
     "address" : "localhost",
     "docker_address" : "storyredis",
-    "port" : 6378
+    "port_docker" : 6379,
+    "port_localhost" : 6378
   },
   "production_server" : {
-
   }
 }
