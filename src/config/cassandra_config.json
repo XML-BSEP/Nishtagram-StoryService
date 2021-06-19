@@ -4,7 +4,8 @@
   "server" : {
     "domain": "127.0.0.1",
     "docker_domain" : "cassandrastory",
-    "port": 7001
+    "port_docker": 9042,
+    "port_localhost": 7000
   },
   "proto_version" : 4
 }

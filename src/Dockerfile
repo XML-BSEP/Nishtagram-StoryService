@@ -51,8 +51,8 @@ FROM alpine:latest
 WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
-COPY --from=builder /src/config ./src/config
-COPY --from=builder /src/certificate ./src/certificate
+COPY --from=builder /src/config ./config
+COPY --from=builder /src/certificate ./certificate
 COPY --from=builder /src/main .
 
 # Command to run the executable
