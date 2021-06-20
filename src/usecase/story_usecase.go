@@ -277,6 +277,7 @@ func (s storyUseCase) GetAllStoriesForOneUser(ctx context.Context, userId string
 			}
 
 
+
 			retVal = append(retVal, story)
 		}
 
