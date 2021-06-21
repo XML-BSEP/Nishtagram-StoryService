@@ -1,6 +1,6 @@
 {
   "production" : false,
-  "docker" : false,
+  "docker" : true,
   "server" : {
     "address" : "localhost",
     "docker_address" : "storyredis",
