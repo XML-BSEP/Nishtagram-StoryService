@@ -8,7 +8,11 @@ import (
 )
 
 func init_viper(logger *logger.Logger) {
-	viper.SetConfigFile(`src/config/redis_config.json`)
+	if os.Getenv("DOCKER_ENV") != "" {
+		viper.SetConfigFile(`src/config/redis_config.json`)
+	} else {
+		viper.SetConfigFile(`config/redis_config.json`)
+	}
 	err := viper.ReadInConfig()
 	if err != nil {
 		logger.Logger.Errorf("error while connecting to redis, error: %v\n", err)
