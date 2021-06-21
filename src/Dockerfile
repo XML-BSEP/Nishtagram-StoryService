@@ -24,18 +24,18 @@ FROM alpine:latest
 WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
-COPY --from=builder /src/config ./config
-COPY --from=builder /src/certificate ./certificate
+COPY --from=builder /src/config ./src/config
+COPY --from=builder /src/certificate ./src/certificate
 COPY --from=builder /src/main .
-COPY --from=builder /src/assets ./assets
-COPY --from=builder /src/domain ./domain
-COPY --from=builder /src/dto ./dto
-COPY --from=builder /src/gateway ./gateway
-COPY --from=builder /src/http ./http
-COPY --from=builder /src/infrastructure ./infrastructure
-COPY --from=builder /src/interactor ./interactor
-COPY --from=builder /src/repository ./repository
-COPY --from=builder /src/usecase ./usecase
+COPY --from=builder /src/assets ./src/assets
+COPY --from=builder /src/domain ./src/domain
+COPY --from=builder /src/dto ./src/dto
+COPY --from=builder /src/gateway ./src/gateway
+COPY --from=builder /src/http ./src/http
+COPY --from=builder /src/infrastructure ./src/infrastructure
+COPY --from=builder /src/interactor ./src/interactor
+COPY --from=builder /src/repository ./src/repository
+COPY --from=builder /src/usecase ./src/usecase
 
 
 # Command to run the executable
