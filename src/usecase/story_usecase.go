@@ -205,7 +205,7 @@ func (s storyUseCase) AddStory(ctx context.Context, dto dto.StoryDTO) error {
 	s.logger.Logger.Infof("adding story for user %v\n", dto.UserId)
 	var keyToStore, valueToStore string
 	expiresAtTime := time.Now().Add(time.Hour*24)
-	expiresAt := time.Unix(expiresAtTime.Unix(), 0)
+	//expiresAt := time.Unix(expiresAtTime.Unix(), 0)
 	now := time.Now()
 
 	decoded, err := s.EncodeBase64(dto.Story, dto.UserId, context.Background())
@@ -215,6 +215,7 @@ func (s storyUseCase) AddStory(ctx context.Context, dto dto.StoryDTO) error {
 
 	dto.MediaPath.Path = decoded
 
+	dto.StoryId = uuid.NewString()
 
 	keyToStore = dto.UserId + "/" + dto.StoryId
 	valueToStore = dto.StoryId
@@ -226,7 +227,7 @@ func (s storyUseCase) AddStory(ctx context.Context, dto dto.StoryDTO) error {
 	}
 
 
-	s.redisUseCase.AddKeyValueSet(context.Background(), keyToStore, valueToStore, now.Sub(expiresAt))
+	s.redisUseCase.AddKeyValueSet(context.Background(), keyToStore, valueToStore, expiresAtTime.Sub(now))
 	return s.storyRepository.AddStory(context.Background(), mapper.MapDTOToStory(dto))
 }
 
