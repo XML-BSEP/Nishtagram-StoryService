@@ -11,6 +11,7 @@ import (
 	"os"
 	"story-service/domain"
 	"story-service/dto"
+	"story-service/gateway"
 	"story-service/repository"
 	"strings"
 )
@@ -18,7 +19,7 @@ import (
 type HighlightUseCase interface {
 	AddStoryToHighlight(ctx context.Context, dto dto.HighlightDTO) error
 	RemoveStoryFrom(ctx context.Context, dto dto.HighlightDTO) error
-	GetHighlights(ctx context.Context, userId string) ([]dto.HighlightsPreviewDTO, error)
+	GetHighlights(ctx context.Context, dto dto.HighlightDTO) ([]dto.HighlightsPreviewDTO, error)
 	GetHighlightByName(ctx context.Context, userId string, highlightName string) (dto.OneHighlightDTO, error)
 	DecodeBase64Str(media string, userId string, ctx context.Context) (string, error)
 	EncodeBase64String(media string, userId string, ctx context.Context) (string, error)
@@ -138,13 +139,33 @@ func (h highlightUseCase) RemoveStoryFrom(ctx context.Context, dto dto.Highlight
 	return nil
 }
 
-func (h highlightUseCase) GetHighlights(ctx context.Context, userId string) ([]dto.HighlightsPreviewDTO, error) {
-	h.logger.Logger.Infof("getting all highlights for user %v\n", userId)
-	highlights, _ := h.highlightRepository.GetAllHighlightsByUser(context.Background(), userId)
+func (h highlightUseCase) GetHighlights(ctx context.Context, req dto.HighlightDTO) ([]dto.HighlightsPreviewDTO, error) {
+	h.logger.Logger.Infof("getting all highlights for user %v\n", req.Id)
+	if req.UserId != req.Id {
+		if req.Id != req.UserId {
+			userFollowing, _ := gateway.GetAllUserFollowing(context.Background(), req.UserId, h.logger)
+			isOkay := false
+			for  _, u := range userFollowing {
+				if u.Id == req.Id {
+					isOkay = true
+					break
+				}
+			}
+			if !isOkay {
+				isPrivate, _ := gateway.IsProfilePrivate(ctx, req.Id)
+				if !isPrivate {
+					h.logger.Logger.Errorf("error while getting all stories by user %v, error: no followings\n", req.UserId)
+					return nil, fmt.Errorf("oh no i hope i don't fall")
+				}
+			}
+		}
+	}
+
+	highlights, _ := h.highlightRepository.GetAllHighlightsByUser(context.Background(), req.Id)
 	var retVal []dto.HighlightsPreviewDTO
 	if highlights != nil {
 		for _, highlight := range highlights {
-			encoded, _ := h.DecodeBase64Str(highlight.HighlightPhoto, userId, context.Background())
+			encoded, _ := h.DecodeBase64Str(highlight.HighlightPhoto, req.Id, context.Background())
 			highlight.HighlightPhoto = encoded
 			retVal = append(retVal, highlight)
 		}

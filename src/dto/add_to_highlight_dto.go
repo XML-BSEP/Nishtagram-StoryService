@@ -6,4 +6,5 @@ type HighlightDTO struct {
 	HighlightName string `json:"name" validate:"required"`
 	HighlightPhoto string `json:"highlightPhoto" validate:"required"`
 	Stories []StoryDTO `json:"stories" validate:"required"`
+	Id string `json:"id"`
 }

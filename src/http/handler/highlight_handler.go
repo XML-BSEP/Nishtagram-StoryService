@@ -175,7 +175,7 @@ func (h highlightHandler) GetHighlightsByUser(ctx *gin.Context) {
 
 
 	req.UserId, _ = middleware.ExtractUserId(ctx.Request, h.logger)
-	highlights, err := h.highlightUseCase.GetHighlights(context.Background(), req.UserId)
+	highlights, err := h.highlightUseCase.GetHighlights(context.Background(), req)
 
 	if err != nil {
 		ctx.JSON(500, gin.H{"message" : "server error"})

@@ -47,8 +47,11 @@ func (s storyUseCase) GetAllStoriesByUser(userId string, userRequested string, c
 			}
 		}
 		if !isOkay {
-			s.logger.Logger.Errorf("error while getting all stories by user %v, error: no followings\n", userId)
-			return nil, fmt.Errorf("oh no i hope i don't fall")
+			isPrivate, _ := gateway.IsProfilePrivate(ctx, userId)
+			if !isPrivate {
+				s.logger.Logger.Errorf("error while getting all stories by user %v, error: no followings\n", userId)
+				return nil, fmt.Errorf("oh no i hope i don't fall")
+			}
 		}
 	}
 	stories, _ := s.storyRepository.GetAllStoriesById(context.Background(), userId)
