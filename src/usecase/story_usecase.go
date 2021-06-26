@@ -26,6 +26,7 @@ type StoryUseCase interface {
 	DecodeBase64(media string, userId string, ctx context.Context) (string, error)
 	GetAllStoriesByUser(userId string, userRequested string, ctx context.Context) ([]dto.StoryDTO, error)
 	GetActiveUsersStories(userId string, ctx context.Context) ([]dto.StoryDTO, error)
+	GetStoryByIdForAdmin(storyId string, storyBy string, ctx context.Context) (dto.StoryDTO, error)
 
 }
 
@@ -33,6 +34,30 @@ type storyUseCase struct {
 	storyRepository repository.StoryRepo
 	redisUseCase RedisUseCase
 	logger *logger.Logger
+}
+
+func (s storyUseCase) GetStoryByIdForAdmin(storyId string, storyBy string, ctx context.Context) (dto.StoryDTO, error) {
+	story, err := s.storyRepository.GetStoryByAdmin(ctx, storyBy, storyId)
+	if err != nil {
+		return dto.StoryDTO{}, err
+	}
+
+	encoded, err := s.DecodeBase64(story.MediaPath.Path, story.UserId, context.Background())
+
+	story.MediaPath.Path = encoded
+	if story.Type == "VIDEO" {
+		story.StoryContent = dto.StoryContent{IsVideo: true, Content: story.MediaPath.Path}
+	} else {
+		story.StoryContent = dto.StoryContent{IsVideo: false, Content: story.MediaPath.Path}
+	}
+
+	profile, _ := gateway.GetUser(context.Background(), story.UserId, s.logger)
+	story.User = domain.Profile{Id: story.UserId, ProfilePhoto: profile.ProfilePhoto, Username: profile.Username}
+	story.Story = encoded
+
+	return story, nil
+
+
 }
 
 func (s storyUseCase) GetAllStoriesByUser(userId string, userRequested string, ctx context.Context) ([]dto.StoryDTO, error) {
