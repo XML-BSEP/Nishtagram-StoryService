@@ -14,11 +14,76 @@ import (
 type ReportHandler interface {
 	ReportStory(ctx *gin.Context)
 	GetAllReportTypes(ctx *gin.Context)
+	ReviewReport(context *gin.Context)
+	GetAllPendingReports(context *gin.Context)
+	GetAllApprovedReports(context *gin.Context)
+	GetAllRejectedReports(context *gin.Context)
 }
 
 type reportHandler struct {
 	reportUseCase usecase.ReportUseCase
 	logger *logger.Logger
+}
+
+func (r reportHandler) ReviewReport(context *gin.Context) {
+	var reviewReportDTO dto.ReviewReportDTO
+
+	decoder := json.NewDecoder(context.Request.Body)
+
+	if err := decoder.Decode(&reviewReportDTO); err != nil {
+		context.JSON(400, "invalid request")
+		context.Abort()
+		return
+	}
+
+	err := r.reportUseCase.ReviewReport(reviewReportDTO, context)
+
+	if err != nil {
+		context.JSON(500, "server error")
+		context.Abort()
+		return
+	}
+
+	context.JSON(200, "ok")
+}
+
+func (r reportHandler) GetAllPendingReports(context *gin.Context) {
+
+	reports, err := r.reportUseCase.GetAllPendingReports(context)
+
+	if err != nil {
+		context.JSON(500, "server error")
+		context.Abort()
+		return
+	}
+
+	context.JSON(200, reports)
+}
+
+func (r reportHandler) GetAllApprovedReports(context *gin.Context) {
+
+	reports, err := r.reportUseCase.GetAllApprovedReports(context)
+
+	if err != nil {
+		context.JSON(500, "server error")
+		context.Abort()
+		return
+	}
+
+	context.JSON(200, reports)
+}
+
+func (r reportHandler) GetAllRejectedReports(context *gin.Context) {
+
+	reports, err := r.reportUseCase.GetAllRejectedReports(context)
+
+	if err != nil {
+		context.JSON(500, "server error")
+		context.Abort()
+		return
+	}
+
+	context.JSON(200, reports)
 }
 
 func (r reportHandler) ReportStory(ctx *gin.Context) {

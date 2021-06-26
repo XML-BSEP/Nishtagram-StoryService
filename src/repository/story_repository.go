@@ -15,10 +15,10 @@ const (
 	InsertIntoStoryTable = "INSERT INTO story_keyspace.Stories (id, profile_id, image, timestamp, mentions, close_friends, type, location_name, longitude, latitude, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
 	GetAllStoryByUser    = "SELECT id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude FROM story_keyspace.Stories WHERE profile_id = ? AND id = ? AND deleted = false;"
 	DeleteStory          = "UPDATE story_keyspace.Stories SET deleted = ? WHERE profile_id = ? AND id = ?;"
-	GetStoryById         = "SELECT id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude FROM story_keyspace.Stories WHERE profile_id = ? AND id = ?;"
+	GetStoryById         = "SELECT id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude, deleted FROM story_keyspace.Stories WHERE profile_id = ? AND id = ?;"
 	SeeIfExists          = "SELECT count(*) FROM story_keyspace.Stories WHERE profile_id = ? AND id = ?;"
 	GetMediaFromId 		 = "SELECT image FROM story_keyspace.Stories WHERE profile_id = ? AND id = ?;"
-	GetStoriesByUserId         = "SELECT id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude FROM story_keyspace.Stories WHERE profile_id = ?;"
+	GetStoriesByUserId         = "SELECT id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude, deleted FROM story_keyspace.Stories WHERE profile_id = ?;"
 
 )
 
@@ -28,11 +28,31 @@ type StoryRepo interface {
 	GetStoryById(ctx context.Context, userId string, postId string) (dto.StoryDTO, error)
 	SeeIfExists(ctx context.Context, userId string, storyId string) bool
 	GetAllStoriesById(ctx context.Context, userId string) ([]dto.StoryDTO, error)
+	GetStoryByAdmin(ctx context.Context, userId string, postId string) (dto.StoryDTO, error)
 }
 
 type storyRepository struct {
 	cassandraClient *gocql.Session
 	logger *logger.Logger
+}
+
+func (s storyRepository) GetStoryByAdmin(ctx context.Context, userId string, postId string) (dto.StoryDTO, error) {
+	var location domain.Location
+	var id, profileId, image, storyType, locationName string
+	var mentions []string
+	var latitude, longitude float64
+	var timestamp time.Time
+	var closeFriends bool
+	var deleted bool
+	iter := s.cassandraClient.Query(GetStoryById, userId, postId).Iter().Scanner()
+	//id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude
+	for iter.Next() {
+		iter.Scan(&id, &profileId, &image, &timestamp, &closeFriends, &storyType, &mentions, &locationName, &latitude, &longitude, &deleted)
+		location = domain.NewLocation(locationName, latitude, longitude)
+		return dto.NewStoryDTO(id, profileId, mentions, domain.Media{Path: image, Timestamp: timestamp}, storyType, location, timestamp, closeFriends), nil
+
+	}
+	return dto.StoryDTO{}, fmt.Errorf("no such story")
 }
 
 func (s storyRepository) GetAllStoriesById(ctx context.Context, userId string) ([]dto.StoryDTO, error) {
@@ -43,12 +63,16 @@ func (s storyRepository) GetAllStoriesById(ctx context.Context, userId string) (
 	var timestamp time.Time
 	var closeFriends bool
 	var retVal []dto.StoryDTO
+	var deleted bool
 	iter := s.cassandraClient.Query(GetStoriesByUserId, userId).Iter().Scanner()
 	//id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude
 	for iter.Next() {
-		iter.Scan(&id, &profileId, &image, &timestamp, &closeFriends, &storyType, &mentions, &locationName, &latitude, &longitude)
-		location = domain.NewLocation(locationName, latitude, longitude)
-		retVal = append(retVal, dto.NewStoryDTO(id, profileId, mentions, domain.Media{Path: image, Timestamp: timestamp}, storyType, location, timestamp, closeFriends))
+		iter.Scan(&id, &profileId, &image, &timestamp, &closeFriends, &storyType, &mentions, &locationName, &latitude, &longitude, &deleted)
+		if !deleted {
+			location = domain.NewLocation(locationName, latitude, longitude)
+			retVal = append(retVal, dto.NewStoryDTO(id, profileId, mentions, domain.Media{Path: image, Timestamp: timestamp}, storyType, location, timestamp, closeFriends))
+		}
+
 	}
 	return retVal, nil
 }
@@ -66,12 +90,16 @@ func (s storyRepository) GetStoryById(ctx context.Context, userId string, postId
 	var latitude, longitude float64
 	var timestamp time.Time
 	var closeFriends bool
+	var deleted bool
 	iter := s.cassandraClient.Query(GetStoryById, userId, postId).Iter().Scanner()
 	//id, profile_id, image, timestamp, close_friends, type, mentions, location_name, latitude, longitude
 	for iter.Next() {
-		iter.Scan(&id, &profileId, &image, &timestamp, &closeFriends, &storyType, &mentions, &locationName, &latitude, &longitude)
-		location = domain.NewLocation(locationName, latitude, longitude)
-		return dto.NewStoryDTO(id, profileId, mentions, domain.Media{Path: image, Timestamp: timestamp}, storyType, location, timestamp, closeFriends), nil
+		iter.Scan(&id, &profileId, &image, &timestamp, &closeFriends, &storyType, &mentions, &locationName, &latitude, &longitude, &deleted)
+		if !deleted {
+			location = domain.NewLocation(locationName, latitude, longitude)
+			return dto.NewStoryDTO(id, profileId, mentions, domain.Media{Path: image, Timestamp: timestamp}, storyType, location, timestamp, closeFriends), nil
+		}
+
 	}
 	return dto.StoryDTO{}, fmt.Errorf("no such story")
 

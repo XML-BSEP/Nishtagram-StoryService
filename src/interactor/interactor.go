@@ -44,7 +44,7 @@ func (i interactor) NewReportRepository() repository.ReportRepository {
 }
 
 func (i interactor) NewReportUseCase() usecase.ReportUseCase {
-	return usecase.NewReportUseCase(i.NewReportRepository(), i.NewStoryRepository())
+	return usecase.NewReportUseCase(i.NewReportRepository(), i.NewStoryRepository(), i.logger)
 }
 
 func (i interactor) NewReportHandler() handler.ReportHandler {

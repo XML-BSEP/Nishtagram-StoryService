@@ -15,11 +15,36 @@ type StoryHandler interface {
 	RemoveStory(ctx *gin.Context)
 	GetStoriesForUser(ctx *gin.Context)
 	GetStoriesInUserProfile(ctx *gin.Context)
+	GetStoryByIdForAdmin(ctx *gin.Context)
 }
 
 type storyHandler struct {
 	storyUseCase usecase.StoryUseCase
 	logger *logger.Logger
+}
+
+func (s storyHandler) GetStoryByIdForAdmin(ctx *gin.Context) {
+	s.logger.Logger.Println("Handling GETTING STORY FOR ADMIN")
+	var req dto.GetStoryDTO
+
+	decoder := json.NewDecoder(ctx.Request.Body)
+
+	if err := decoder.Decode(&req); err != nil {
+		s.logger.Logger.Errorf("error while decoding json, error: %v\n", err)
+		ctx.JSON(400, gin.H{"message" : "invalid request"})
+		ctx.Abort()
+		return
+	}
+
+	story, err := s.storyUseCase.GetStoryByIdForAdmin(req.Id, req.StoryBy, context.Background())
+
+	if err != nil {
+		ctx.JSON(500, gin.H{"message" : "server error"})
+		ctx.Abort()
+		return
+	}
+
+	ctx.JSON(200, story)
 }
 
 func (s storyHandler) GetStoriesInUserProfile(ctx *gin.Context) {

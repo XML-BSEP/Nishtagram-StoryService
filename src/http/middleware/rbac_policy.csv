@@ -9,7 +9,11 @@ p, USER, /story/getAllStoriesOnUserProfile, *
 p, USER, /story/saveHighlight, *
 p, USER, /story/reportStory, *
 p, USER, /story/getAllReportTypes, *
-
+p, ADMIN, /story/reviewReport, *
+p, ADMIN, /story/getPendingReports, *
+p, ADMIN, /story/getApprovedReports, *
+p, ADMIN, /story/getRejectedReports, *
+p, ADMIN, /story/getStoryForAdmin, *
 
 
 
