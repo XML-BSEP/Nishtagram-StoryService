@@ -9,6 +9,17 @@ p, USER, /story/getAllStoriesOnUserProfile, *
 p, USER, /story/saveHighlight, *
 p, USER, /story/reportStory, *
 p, USER, /story/getAllReportTypes, *
+p, AGENT, /story/addStory, *
+p, AGENT, /story/removeStory, *
+p, AGENT, /story/getStories, *
+p, AGENT, /story/getHighlights, *
+p, AGENT, /story/getStoriesHighlight, *
+p, AGENT, /story/addToHighlight, *
+p, AGENT, /story/removeFromHighlight, *
+p, AGENT, /story/getAllStoriesOnUserProfile, *
+p, AGENT, /story/saveHighlight, *
+p, AGENT, /story/reportStory, *
+p, AGENT, /story/getAllReportTypes, *
 p, ADMIN, /story/reviewReport, *
 p, ADMIN, /story/getPendingReports, *
 p, ADMIN, /story/getApprovedReports, *
