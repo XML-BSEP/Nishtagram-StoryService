@@ -31,6 +31,7 @@ func NewRouter(handler handler.AppHandler, logger *logger.Logger) *gin.Engine {
 	g.GET("/getApprovedReports", handler.GetAllApprovedReports)
 	g.GET("/getRejectedReports", handler.GetAllRejectedReports)
 	g.POST("/getStoryForAdmin", handler.GetStoryByIdForAdmin)
+	g.POST("/createStoryFromCampaign", handler.AddStoryFromCampaign)
 
 	return router
 }

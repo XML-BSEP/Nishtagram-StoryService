@@ -16,11 +16,35 @@ type StoryHandler interface {
 	GetStoriesForUser(ctx *gin.Context)
 	GetStoriesInUserProfile(ctx *gin.Context)
 	GetStoryByIdForAdmin(ctx *gin.Context)
+	AddStoryFromCampaign(ctx *gin.Context)
 }
 
 type storyHandler struct {
 	storyUseCase usecase.StoryUseCase
 	logger *logger.Logger
+}
+
+func (s storyHandler) AddStoryFromCampaign(ctx *gin.Context) {
+	s.logger.Logger.Println("Handling ADDING STORIES")
+	var req dto.StoryDTO
+
+	decoder := json.NewDecoder(ctx.Request.Body)
+
+	if err := decoder.Decode(&req); err != nil {
+		s.logger.Logger.Errorf("error while decoding json, error: %v\n", err)
+		ctx.JSON(400, gin.H{"message" : "invalid request"})
+		ctx.Abort()
+		return
+	}
+	err := s.storyUseCase.AddStory(context.Background(), req)
+
+	if err != nil {
+		ctx.JSON(500, gin.H{"message" : "server error"})
+		ctx.Abort()
+		return
+	}
+
+	ctx.JSON(200, gin.H{"message" : "story successfully added"})
 }
 
 func (s storyHandler) GetStoryByIdForAdmin(ctx *gin.Context) {
