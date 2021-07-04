@@ -14,6 +14,6 @@ p, ADMIN, /story/getPendingReports, *
 p, ADMIN, /story/getApprovedReports, *
 p, ADMIN, /story/getRejectedReports, *
 p, ADMIN, /story/getStoryForAdmin, *
-
+p, ANONYMOUS /story/createStoryFromCampaign, *
 
 
