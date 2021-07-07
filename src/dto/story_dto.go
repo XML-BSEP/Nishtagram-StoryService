@@ -19,13 +19,20 @@ type StoryDTO struct {
 	IsVideo bool `json:"isVideo" validate:"required"`
 	Story string `json:"story"`
 	NotFollowing bool `json:"notFollowing"`
+	IsCampaign bool `json:"isCampaign"`
+	CampaignId string `json:"campaignId"`
+	Link string `json:"link"`
 
 
 }
 
-func NewStoryDTO(storyId string, userId string, mentions []string, media domain.Media, mediaType string, location domain.Location, timestamp time.Time, closeFriends bool) StoryDTO {
+func NewStoryDTO(storyId string, userId string, mentions []string, media domain.Media, mediaType string, location domain.Location,
+	timestamp time.Time, closeFriends bool, isCampaign bool, campaignId string, link string) StoryDTO {
 	return StoryDTO{
 		StoryId: storyId,
+		Link: link,
+		IsCampaign: isCampaign,
+		CampaignId: campaignId,
 		CloseFriends: closeFriends,
 		UserId: userId,
 		Mentions: mentions,

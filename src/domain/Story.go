@@ -14,6 +14,9 @@ type Story struct {
 	Location Location
 	CloseFriends bool
 	Banned bool
+	IsCampaign bool
+	CampaignId string
+	Link string
 }
 
 func NewStory(id string, media string, timestamp time.Time, userId string, closeFriends bool, mentions []Profile, storyType string, locationName string, lat float64, long float64) Story {

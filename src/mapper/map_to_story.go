@@ -20,5 +20,8 @@ func MapDTOToStory(dto dto.StoryDTO) domain.Story {
 		Banned: false,
 		StoryType: domain.StoryType{Type: dto.Type},
 		Media: dto.MediaPath,
+		IsCampaign: dto.IsCampaign,
+		CampaignId: dto.CampaignId,
+		Link: dto.Link,
 	}
 }

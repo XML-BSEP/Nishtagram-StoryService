@@ -36,6 +36,7 @@ func (s storyHandler) AddStoryFromCampaign(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
+	req.IsCampaign = true
 	err := s.storyUseCase.AddStory(context.Background(), req)
 
 	if err != nil {
@@ -117,6 +118,7 @@ func (s storyHandler) AddStory(ctx *gin.Context) {
 		return
 	}
 	req.UserId, _ = middleware.ExtractUserId(ctx.Request, s.logger)
+	req.IsCampaign = false
 	err := s.storyUseCase.AddStory(context.Background(), req)
 
 	if err != nil {
