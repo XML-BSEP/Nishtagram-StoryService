@@ -5,7 +5,7 @@
     "domain": "127.0.0.1",
     "docker_domain" : "cassandrastory",
     "port_docker": 9042,
-    "port_localhost": 7000
+    "port_localhost": 7001
   },
   "proto_version" : 4
 }

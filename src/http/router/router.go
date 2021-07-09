@@ -5,10 +5,14 @@ import (
 	logger "github.com/jelena-vlajkov/logger/logger"
 	"story-service/http/handler"
 	"story-service/http/middleware"
+	"story-service/http/middleware/prometheus_middleware"
 )
 
 func NewRouter(handler handler.AppHandler, logger *logger.Logger) *gin.Engine {
 	router := gin.Default()
+	requestCounter := prometheus_middleware.GetHttpRequestsCounter()
+	router.Use(prometheus_middleware.PrometheusMiddleware(requestCounter))
+	router.GET("/metrics", prometheus_middleware.PrometheusGinHandler())
 
 	g := router.Group("/story")
 
@@ -32,6 +36,7 @@ func NewRouter(handler handler.AppHandler, logger *logger.Logger) *gin.Engine {
 	g.GET("/getRejectedReports", handler.GetAllRejectedReports)
 	g.POST("/getStoryForAdmin", handler.GetStoryByIdForAdmin)
 	g.POST("/createStoryFromCampaign", handler.AddStoryFromCampaign)
+
 
 	return router
 }
